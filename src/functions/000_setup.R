@@ -29,7 +29,7 @@ rgdal::set_thin_PROJ6_warnings(TRUE)
 #########################################################################
 
 # define rootfolder
-rootDir = envimaR::alternativeEnvi(root_folder = root_dir,
+rootDir = envimaR::alternativeEnvi(root_folder = root_folder,
                                    alt_env_id = "COMPUTERNAME",
                                    alt_env_value = "PCRZP",
                                    alt_env_root_folder = "F:/BEN/edu")
