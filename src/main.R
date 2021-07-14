@@ -1,0 +1,17 @@
+#' Main control script
+#'
+#' @description Use this script for controlling the processing.
+#'
+#' @author [name], [email@com]
+#'
+
+library(envimaR)
+library(rprojroot)
+root_folder = find_rstudio_root_file()
+
+source(file.path(root_folder, "src/functions/000_setup.R"))
+
+# Note: For small projects, all code can go to this file except the main project setup script.
+# For large projects, this file should only call other sub-control files and/or functions.
+# To add a script using envimaR see ?envimaR::addScript.
+
