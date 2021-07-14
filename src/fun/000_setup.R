@@ -29,7 +29,7 @@ rgdal::set_thin_PROJ6_warnings(TRUE)
 #########################################################################
 
 # define rootfolder
-rootDir = envimaR::alternativeEnvi(root_folder = root_dir,
+rootDir = envimaR::alternativeEnvi(root_folder = "/home/creu/edu/mpg-envinsys-plygrnd/",
                                    alt_env_id = "COMPUTERNAME",
                                    alt_env_value = "PCRZP",
                                    alt_env_root_folder = "F:/BEN/edu")
@@ -38,19 +38,19 @@ rootDir = envimaR::alternativeEnvi(root_folder = root_dir,
 # define project specific subfolders
 projectDirList   = c("data/",                # datafolders for all kind of date
                      "data/auxdata/",        # the following used by scripts however
-                     "data/aerial/level0/",     # you may add whatever you like
+                     "data/aerial/level0/",     # you may add whatever you like                     
                      "data/aerial/org/",     # you may add whatever you like
-                     "data/aerial/",     # you may add whatever you like
+                     "data/aerial/",     # you may add whatever you like                     
                      "data/lidar/org/",
                      "data/lidar/",
                      "data/grass/",
-                     "data/lidar/level0/",
+                     "data/lidar/level0/",                     
                      "data/lidar/level1/",
                      "data/lidar/level1/normalized",
                      "data/lidar/level1/ID",
                      "data/lidar/level2/",
                      "data/lidar/level0/all/",
-                     "data/data_mof",
+                     "data/data_mof", 
                      "data/sentinel/",
                      "data/sentinel/S2/",
                      "data/sentinel/SAFE/",
@@ -72,7 +72,7 @@ envrmt = envimaR::createEnvi(root_folder = rootDir,
                              libs = packagesToLoad,
                              alt_env_id = "COMPUTERNAME",
                              alt_env_value = "PCRZP",
-                             fcts_folder = file.path(rootDir,"/src/functions"),
+                             fcts_folder = file.path(rootDir,"msc-phygeo-class-of-2020-creu/src/fun"),
                              alt_env_root_folder = "F:/BEN/edu")
 
 
