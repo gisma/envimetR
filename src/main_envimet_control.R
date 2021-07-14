@@ -47,18 +47,22 @@ source(file.path(root_folder, "src/functions/000_setup.R"))
 ##  step 4 cleaning the training data for a random forest model training
 #source(file.path(rootDir,"/src/40_RS_high_resolution data_model_training_rev.R"))
 
-# modeling and prediction
-## step 5 leave location out forward feature selection (llo-ffs)  random forest model training and prediction
+# derive canopy heightmodel CHM
+## step 5 the calculation of a high quality CHM is performed using lidR
 source(file.path(rootDir,"/src/50_chm.R"))
 
-# modeling and prediction
-## step 5 leave location out forward feature selection (llo-ffs)  random forest model training and prediction
+# segemntation
+## step 6 a almost standard segementation using the point cloud and the chm is performed
 source(file.path(rootDir,"/src/60_lidar_segmentation.R.R"))
 
-# modeling and prediction
-## step 5 leave location out forward feature selection (llo-ffs)  random forest model training and prediction
-source(file.path(rootDir,"/src/70_prepare_envimet_simple_plants.R"))
+# Retrieval aof Sentinel 2 data
+## step 7 to calculate LAI and Albdo some Sentinel processing is done
+source(file.path(rootDir,"/src/70_retrieve_sentinel_stuff.R"))
 
-# modeling and prediction
-## step 5 leave location out forward feature selection (llo-ffs)  random forest model training and prediction
-source(file.path(rootDir,"/src/80_tree_cluster_analysis.R"))
+# Preprocessing of the simple plants data base
+## step 8  quite some calculatins and extraction procedures to obtain unified values fpor the envimet plant data base
+source(file.path(rootDir,"/src/80_prepare_envimet_simple_plants.R"))
+
+# Cluster Analysis of the accumulated tree variables
+## step 9  identfy synthetic tree types
+source(file.path(rootDir,"/src/90_tree_cluster_analysis.R"))
