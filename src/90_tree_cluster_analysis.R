@@ -10,27 +10,18 @@
 # Data:  dataframe as provided by the 30_make_enviMet_simple_plants.R script
 # Output: cluster number and algorithm as well as the clustered data table
 # Copyright: Chris Reudenbach, 2021, GPL (>= 3)
-# git clone https://github.com/GeoMOER-Students-Space/msc-phygeo-class-of-2020-creu.git
-
+# git clone https://github.com/gisma/envimetR.git
 #------------------------------------------------------------------------------
 
-library(hrbrthemes)    # bubbleplots ggpairs
-library(tibble)        # tidy data
-library(dplyr)         # tidy data
-library(cluster)       # basic package for clustering
-library(sf)
-library(ClusterR)
-theme_set(theme_pubr())
+# 0 - load packages
 #-----------------------------
-require(envimaR)
-#-----------------
-source(file.path(envimaR::alternativeEnvi(root_folder = "~/edu/mpg-envinsys-plygrnd",
-                                          alt_env_id = "COMPUTERNAME",
-                                          alt_env_value = "PCRZP",
-                                          alt_env_root_folder = "F:/BEN/edu/mpg-envinsys-plygrnd"),
-                 "msc-phygeo-class-of-2020-creu/src/fun/000_setup.R"))
-seed=3
-set.seed(seed)
+library(envimaR)
+library(rprojroot)
+root_folder = find_rstudio_root_file()
+
+source(file.path(root_folder, "src/functions/000_setup.R"))
+
+set.seed(123)
 
 
 ###--------- Estimation of the optimal methods and cluster numbers

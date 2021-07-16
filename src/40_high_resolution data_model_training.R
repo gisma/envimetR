@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Type:         control script 
+# Type:         control script
 # Name:         RS_high_resolution data_model_training.R
 # Copyright: Hanna Meyer, Chris Reudenbach 2019-2021, GPL (>= 3)
 # URL: https://github.com/HannaMeyer/OpenGeoHub_2019/blob/master/practice/ML_LULC.Rmd
@@ -12,29 +12,21 @@
 #               (1) get rid of data that fails and artifacts (including NA and near zero values)
 #               (2) reduction of the number of predictors by dropping the highly linear correlated ones
 
-# Data:         training data dataframe 
-# Output:       basically checked and dimension reduced data frame containing 
+# Data:         training data dataframe
+# Output:       basically checked and dimension reduced data frame containing
 #               valid partion of training data for the model training
+# git clone https://github.com/gisma/envimetR.git
 #------------------------------------------------------------------------------
 
 
 # 0 - load additional packages etc.
 #-----------------------------
-library(doParallel)
-library(plyr)
-library(dplyr)
-library(caret)
-library(CAST)
 
+library(envimaR)
+library(rprojroot)
+root_folder = find_rstudio_root_file()
 
-# check if the project environment already exists if not setup
-if(!exists("envrmt")){
-  rm(list = ls()) 
-  gc()
-  require(envimaR)
-  source(file.path(envimaR::alternativeEnvi(root_folder = "~/edu/mpg-envinsys-plygrnd/", alt_env_id = "COMPUTERNAME", alt_env_value = "PCRZP", alt_env_root_folder = "F:/BEN/edu/mpg-envinsys-plygrnd"),
-                   "msc-phygeo-class-of-2020-creu/src/fun/000_setup.R",fsep = ""))
-}
+source(file.path(root_folder, "src/functions/000_setup.R"))
 
 # 2 - define variables
 #---------------------
@@ -43,19 +35,19 @@ cat(getCrayon()[[3]](":::: read train data frame  \n"))
 # NOTE adapt the filename according to the prediction stack file
 
 fn = "5-25_MOF_rgb"
-# extraction type random, hexagonal , 
+# extraction type random, hexagonal ,
 sample_type = "regular"
-seed=1000
+seed=123
 trainDF=trainDF_ex
-# ---- Data input if not done by 
+# ---- Data input if not done by
 # trainDF = readRDS(paste0(tools::file_path_sans_ext(fbFN),sample_type,".rds"))
-# predStack_PCA =raster::stack(paste0(envrmt$path_aerial,fn,"_final_predictors_otb_pca_10.tif")) 
+# predStack_PCA =raster::stack(paste0(envrmt$path_aerial,fn,"_final_predictors_otb_pca_10.tif"))
 # names(predStack_PCA)=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10")
 # substitute class characteristics
-trainDF$Type <- plyr::mapvalues(trainDF$Type, 
-                                from = c("EIT", "EIS", "EIR", "FIG", "BUR", "LAE","ESG","ERG","ERS","DGL","Grassland","Road","Settlement","Water","Field"), 
+trainDF$Type <- plyr::mapvalues(trainDF$Type,
+                                from = c("EIT", "EIS", "EIR", "FIG", "BUR", "LAE","ESG","ERG","ERS","DGL","Grassland","Road","Settlement","Water","Field"),
                                 to = c("oak","oak","oak", "spruce", "beech", "larch","ash","alder","alder","douglas_fir","pastures","roads","settlements","water","agriculture"))
-              
+
 # roughly 100K training samples will be extracted
 tp_goal = 100000
 
@@ -73,13 +65,13 @@ no_of_llo_blocks = 20
 drops = c( "cell", "coverage_fraction")#, "geometry","sptlBlc")
 keeps = c( "Type","sptlBlc")
 
-# 3 - start code 
+# 3 - start code
 #-----------------
 ##-----------------------------------------------------------------------------
 
 set.seed(seed)
 
-# split data 
+# split data
 
 trainDF = st_drop_geometry(trainDF)
 trainDF = trainDF[trainDF$coverage_fraction >= 1,]
@@ -107,10 +99,10 @@ mtry = length(trainDat) - length(keeps)
 
 ## ----- ordinary cv
 # define caret control settings
-ctrlh = trainControl(method = "cv", 
-                      number = 10, 
+ctrlh = trainControl(method = "cv",
+                      number = 10,
                       savePredictions = TRUE)
-# train model 
+# train model
 cl = makeCluster(16)
 registerDoParallel(cl)
 set.seed(seed)
@@ -122,7 +114,7 @@ cv_model = train(trainDat[,predictors],
              importance = TRUE
              # ntree = 50
 )
-stopCluster(cl) 
+stopCluster(cl)
 saveRDS(cv_model,file = paste0(envrmt$path_data,"cv_model_",fn,".rds"))
 cv_model
 
@@ -138,7 +130,7 @@ ctrl_sp = trainControl(method = "cv",
                        index = folds$index,
                        indexOut = folds$indexOut)
 
-# train model 
+# train model
 cl = makeCluster(10)
 registerDoParallel(cl)
 set.seed(seed)
@@ -149,11 +141,11 @@ ffsmodel_spatial = ffs(trainDat[,predictors],
                        tuneGrid = data.frame("mtry" = mtry),
                        #ntree = 50,    # 500 default of the randomforest package
                        trControl = ctrl_sp)
-stopCluster(cl) 
+stopCluster(cl)
 ffsmodel_spatial
 saveRDS(ffsmodel_spatial,file = paste0(envrmt$path_data,"ffs_model_",fn,".rds"))
 
-# plotting the results of the variable selection 
+# plotting the results of the variable selection
 plot_ffs(ffsmodel_spatial)
 plot_ffs(ffsmodel_spatial, plotType = "selected")
 
@@ -188,6 +180,6 @@ saveRDS(prediction_cv_PCA,paste0(envrmt$path_aerial_level0,"sfprediction_cv_",fn
 crs(dtm) = projection(predStack_PCA)
 
 # show results
-mapview(prediction_ffs_PCA,col.regions=as.character(ccols$col)) + 
-  mapview(prediction_cv_PCA,col.regions=as.character(ccols$col)) 
+mapview(prediction_ffs_PCA,col.regions=as.character(ccols$col)) +
+  mapview(prediction_cv_PCA,col.regions=as.character(ccols$col))
 

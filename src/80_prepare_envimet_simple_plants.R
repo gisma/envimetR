@@ -9,10 +9,8 @@
 #       sentinel 2 bands 2,3,4,8, classification of tree species  40_RS_high_resolution data
 # Output: Envimet simple plant database file
 # Copyright: Chris Reudenbach 2021, GPL (>= 3)
+# git clone https://github.com/gisma/envimetR.git
 #------------------------------------------------------------------------------
-
-## clean your environment
-rm(list=ls())
 
 library(envimaR)
 library(rprojroot)

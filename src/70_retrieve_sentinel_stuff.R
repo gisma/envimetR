@@ -9,34 +9,18 @@
 #       sentinel 2 bands 2,3,4,8, classification of tree species  40_RS_high_resolution data
 # Output: Envimet simple plant database file
 # Copyright: Chris Reudenbach 2021, GPL (>= 3)
+# git clone https://github.com/gisma/envimetR.git
 #------------------------------------------------------------------------------
-
-## clean your environment
-rm(list=ls())
 
 # 0 - load packages
 #-----------------------------
+library(envimaR)
+library(rprojroot)
+root_folder = find_rstudio_root_file()
+
+source(file.path(root_folder, "src/functions/000_setup.R"))
 
 
-## dealing with the crs warnings is cumbersome and complex
-## you may reduce the warnings with uncommenting  the following line
-## for a deeper  however rarely less confusing understanding have a look at:
-## https://rgdal.r-forge.r-project.org/articles/CRS_projections_transformations.html
-## https://www.r-spatial.org/r/2020/03/17/wkt.html
-rgdal::set_thin_PROJ6_warnings(TRUE)
-
-
-# 1 - source files
-#-----------------
-source(file.path(envimaR::alternativeEnvi(root_folder = "~/edu/mpg-envinsys-plygrnd",
-                                          alt_env_id = "COMPUTERNAME",
-                                          alt_env_value = "PCRZP",
-                                          alt_env_root_folder = "F:/BEN/edu/mpg-envinsys-plygrnd"),
-                 "msc-phygeo-class-of-2020-creu/src/fun/000_setup.R"))
-
-library(tidyr)
-library(dplyr)
-library(sen2r)
 # 2 - define variables
 #---------------------
 out_dir =envrmt$path_sapflow

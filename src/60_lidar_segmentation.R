@@ -1,57 +1,34 @@
 #------------------------------------------------------------------------------
-# Type: control script 
-# Name: 60_lidar_segementation.R
+# Type: control script
+# Name: enviMet_simple_plants.R
 # Author: Chris Reudenbach, creuden@gmail.com
 # Description:  derives pc tree segments and hulls and the standard metrics
 
-# Data: point cloud, dsm and dtm as derived by 10_CHM_Catalog.R  
+# Data: point cloud, dsm and dtm as derived by 10_CHM_Catalog.R
 # Output: sf polygon object
 # Copyright: Chris Reudenbach 2021, GPL (>= 3)
+# git clone https://github.com/gisma/envimetR.git
 #------------------------------------------------------------------------------
 
-## clean your environment
-rm(list=ls()) 
+library(envimaR)
+library(rprojroot)
+root_folder = find_rstudio_root_file()
 
-# 0 - load packages
-#-----------------------------
+source(file.path(root_folder, "src/functions/000_setup.R"))
 
-
-## dealing with the crs warnings is cumbersome and complex
-## you may reduce the warnings with uncommenting  the following line
-## for a deeper  however rarely less confusing understanding have a look at:
-## https://rgdal.r-forge.r-project.org/articles/CRS_projections_transformations.html
-## https://www.r-spatial.org/r/2020/03/17/wkt.html
-rgdal::set_thin_PROJ6_warnings(TRUE)
-
-
-# 1 - source files
-#-----------------
-source(file.path(envimaR::alternativeEnvi(root_folder = "~/edu/mpg-envinsys-plygrnd",
-                                          alt_env_id = "COMPUTERNAME",
-                                          alt_env_value = "PCRZP",
-                                          alt_env_root_folder = "F:/BEN/edu/mpg-envinsys-plygrnd"),
-                 "msc-phygeo-class-of-2020-creu/src/fun/000_setup.R"))
-
-library(tidyr)
-library(dplyr)
 # 2 - define variables
 #---------------------
 fn = "5-25_MOF_rgb"
-## ETRS89 / UTM zone 32N
-epsg = 25832
-# get viridris color palette
-pal<-mapview::mapviewPalette("mapviewTopoColors")
-#Saftflusshalbmond
-coord = c(xmin,ymin,xmax,ymax)
+
 
 min_tree_height = 5
-dtm  = raster::raster(file.path(envrmt$path_data,"dtm_knnidw_1m.tif")) 
+dtm  = raster::raster(file.path(envrmt$path_data,"dtm_knnidw_1m.tif"))
 dsm  = raster::raster(file.path(envrmt$path_data,"dsm_p2r_1m.tif"))
 las_file=lidR::readLAS("/home/creu/edu/mpg-envinsys-plygrnd/data/lidar/level1/crop_aoimof.las")
 
 crs(dtm) = projection(las_file)
 crs(dsm) = projection(las_file)
-# 3 - start code 
+# 3 - start code
 #-----------------
 # calulate the chm
 chm=dsm-dtm
@@ -83,7 +60,7 @@ st = segment_trees(ht, dalponte2016(chm, treetops=ttops))
 # x = plot(st,color = "treeID")
 # add_treetops3d(x, ttops)
 
-# no filtering for non tree ids and deriving statistics and the projected hull 
+# no filtering for non tree ids and deriving statistics and the projected hull
 trees   = lidR::filter_poi(st, !is.na(treeID))
 hulls = lidR::delineate_crowns(trees, type = "concave", concavity = 2,func= .stdmetrics)
 

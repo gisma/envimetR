@@ -1,46 +1,36 @@
 #------------------------------------------------------------------------------
-# Type: control script 
+# Type: control script
 # Name: 30_RS_extract_training_data_PCA.R
 # Author: Chris Reudenbach, creuden@gmail.com
 # Description:  extract raw training data according to training areas
-#               * it uses the forest inventories to automatically generate 
+#               * it uses the forest inventories to automatically generate
 #                 training areas for tree species
-#               * furthermore an additional training data set of 
+#               * furthermore an additional training data set of
 #                 e.g. corine or manually digitized data will be combined
-#               The number of sampling positions and the type of sampling 
-#               can be determined. a defined buffer is created around the 
-#               positions and the training values are extracted from these. 
+#               The number of sampling positions and the type of sampling
+#               can be determined. a defined buffer is created around the
+#               positions and the training values are extracted from these.
 #               The tree species are drawn in proportion to their area.
-#               The resulting data is tidy up and then a 10 class PCA is performed 
-#               The final training data set is derived by extracting the data at the 
-#               same positions as before. This will significantly speed up the 
+#               The resulting data is tidy up and then a 10 class PCA is performed
+#               The final training data set is derived by extracting the data at the
+#               same positions as before. This will significantly speed up the
 #               training as well as it makes the classification more robust.
 # Data:         raster data stack of prediction variables , training areas
 # Output:       raw dataframe containing training data
 
-# Copyright: Chris Reudenbach 2019-2020, GPL (>= 3)
+# Copyright: Chris Reudenbach 2019-2021, GPL (>= 3)
+# git clone https://github.com/gisma/envimetR.git
 #------------------------------------------------------------------------------
 
 
 # 0 - load packages
 #-----------------------------
-library(caret)
-library(exactextractr)
-library(dplyr)
-library(sf)
 
-if (!exists("envrmt")) {
-  # 0 - load packages
-  #-----------------------------
-  require(envimaR)
-  rm(list = ls()) 
-  gc()  
-  envrmt = list()
-  # 1 - source files
-  #-----------------
-  source(file.path(envimanamesR::alternativeEnvi(root_folder = "~/edu/mpg-envinsys-plygrnd", alt_env_id = "COMPUTERNAME", alt_env_value = "PCRZP", alt_env_root_folder = "F:/BEN/edu/mpg-envinsys-plygrnd"),
-                   "msc-phygeo-class-of-2020-creu/src/fun/000_setup.R"))
-}
+library(envimaR)
+library(rprojroot)
+root_folder = find_rstudio_root_file()
+
+source(file.path(root_folder, "src/functions/000_setup.R"))
 
 # clean run dir
 unlink(paste0(envrmt$path_tmp,"*"), force = TRUE)
@@ -52,7 +42,7 @@ unlink(paste0(envrmt$path_tmp,"*"), force = TRUE)
 # NOTE you have to adapt the filname according to the prediction stack file
 fn = "5-25_MOF_rgb"
 
-# numbers of training points 
+# numbers of training points
 no_sample = 7500
 critical_training_classes = c("Water","Road","Settlement") # small or poorly digitized classes but NO forest classes
 area_share_for_non_inventory = 0.25   # all excluding forest inventory and critical_training_classes
@@ -60,7 +50,7 @@ cc_value_th = 0.05 # threshold for small areas forest classes or cc
 cc_value = 0.01
 # radius of buffer around the extracting points
 buffer_size = .5
-# extraction type random, hexagonal , 
+# extraction type random, hexagonal ,
 sample_type = "regular"
 # cut of level of correlated predictors that are rejected
 cor_cutoff = 0.8
@@ -76,7 +66,7 @@ keeps = c( "Type","sptlBlc","spBlock")
 # assign the prediction stack as derived by 20_calculatesynbands
 predStack  = raster::stack(paste0(envrmt$path_aerial,fn,".gri"))
 
-# training data  
+# training data
 # have also a look at https://github.com/HannaMeyer/OpenGeoHub_2019/tree/master/practice/data
 trainSites = sf::read_sf(file.path(envrmt$path_auxdata,"training_MOF_1m.shp"))
 trainSites = sf::st_transform(trainSites,crs = projection(predStack))
@@ -89,7 +79,7 @@ train_data = sf::st_transform(train_data,crs = projection(predStack))
 train_data = st_crop(train_data,st_bbox(predStack))
 # filter for nan tree areas
 train_data_nan = train_data %>% filter(!mainTreeSp == "na")
-train_data_union = st_union(train_data_nan) 
+train_data_union = st_union(train_data_nan)
 # retrieve the main tree species without nan
 species = unique(train_data_nan$mainTreeSp)
 # calculate reference tree area
@@ -127,10 +117,10 @@ train_data_DF = do.call(rbind, distinct_df)
 train_data_DF = st_buffer(train_data_DF,buffer_size)
 
 
-## using the exactextractr packageby 100 times+ faster than raster::extract 
+## using the exactextractr packageby 100 times+ faster than raster::extract
 tDF_ex = exactextractr::exact_extract(predStack, train_data_DF,  force_df = TRUE,
-                                      include_cell = TRUE,include_xy = TRUE,full_colnames = TRUE,include_cols = "Type") 
-tDF_ex = dplyr::bind_rows(tDF_ex) 
+                                      include_cell = TRUE,include_xy = TRUE,full_colnames = TRUE,include_cols = "Type")
+tDF_ex = dplyr::bind_rows(tDF_ex)
 
 # brute force approach to get rid of NA
 tDF_ex = tDF_ex[ , colSums(is.na(tDF_ex)) == 0]
@@ -154,8 +144,8 @@ saveRDS(trainDF,paste0(envrmt$path_auxdata,"trainDF_hf_tutorial_PCA",sample_type
 ############
 
 # substitute class characteristics
-trainDF$Type <- plyr::mapvalues(trainDF$Type, 
-                                from = c("EIT", "EIS", "EIR", "FIG", "BUR", "LAE","ESG","ERG","ERS","DGL","Grassland","Road","Settlement","Water","Field"), 
+trainDF$Type <- plyr::mapvalues(trainDF$Type,
+                                from = c("EIT", "EIS", "EIR", "FIG", "BUR", "LAE","ESG","ERG","ERS","DGL","Grassland","Road","Settlement","Water","Field"),
                                 to = c("oak","oak","oak", "spruce", "beech", "larch","ash","alder","alder","douglas_fir","pastures","roads","settlements","water","agriculture"))
 
 set.seed(seed)
@@ -172,7 +162,7 @@ trainDF =  trainDF[trainids,]
 ## ----  cleaning the training data for a random forest model training
 traintmp = trainDF[ , !(names(trainDF) %in% drops)]
 
-# filter zero or near-zero values 
+# filter zero or near-zero values
 nzv = nearZeroVar(traintmp)
 if (length(nzv) > 0) traintmp = traintmp[, -nzv]
 
@@ -221,7 +211,7 @@ pca$progress = "true"
 pca$normalize = "true"
 pca$nbcomp=10
 pca$progress = "true"
-predStack_PCA = runOTB(pca,gili = otb,retRaster = TRUE,quiet = FALSE)  
+predStack_PCA = runOTB(pca,gili = otb,retRaster = TRUE,quiet = FALSE)
 # rename layers
 names(predStack_PCA)=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC10")
 
@@ -234,8 +224,8 @@ names(predStack_PCA)=c("PC1","PC2","PC3","PC4","PC5","PC6","PC7","PC8","PC9","PC
 # extract final training data
 
 tDF_ex = exactextractr::exact_extract(predStack_PCA, train_data_DF,  force_df = TRUE,
-                                      include_cell = TRUE,include_xy = TRUE,full_colnames = TRUE,include_cols = "Type") 
-tDF_ex = dplyr::bind_rows(tDF_ex) 
+                                      include_cell = TRUE,include_xy = TRUE,full_colnames = TRUE,include_cols = "Type")
+tDF_ex = dplyr::bind_rows(tDF_ex)
 
 # brute force approach to get rid of NA
 tDF_ex = tDF_ex[ , colSums(is.na(tDF_ex)) == 0]

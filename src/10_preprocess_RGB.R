@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Type: control script 
+# Type: control script
 # Name: 10_RS_preprocess_RGB.R
 # Version 0.2
 # Author: Chris Reudenbach, creuden@gmail.com
@@ -7,37 +7,30 @@
 #               - merge all images in a folder to one image
 #               - clip the image to a defined (NOTE by default as defined in setup)
 #                 the "sap flow half moon" extent is used
-#              
-# changelog 0.2:- merge and correction code has moved to functions
-#               - It is tested now if the files exist 
-#                 to jump over the time consuming process of 
-#                 correcting merging, projecting and cropping the data
-#               - all output filenames are defined by variables 
 #
-# Data: regular authority provided airborne RGB imagery 
-# Output: merged, clipped and corrected image of AOI is written to filesystem 
+# changelog 0.2:- merge and correction code has moved to functions
+#               - It is tested now if the files exist
+#                 to jump over the time consuming process of
+#                 correcting merging, projecting and cropping the data
+#               - all output filenames are defined by variables
+#
+# Data: regular authority provided airborne RGB imagery
+# Output: merged, clipped and corrected image of AOI is written to filesystem
 #         and added to the environment (aoi_RGB)
-# Copyright: Thomas Nauss, Chris Reudenbach 2017,2020, GPL (>= 3)
-# git clone https://github.com/GeoMOER-Students-Space/msc-phygeo-class-of-2020-creu.git
+# Copyright: Thomas Nauss, Chris Reudenbach 2017,2021, GPL (>= 3)
+# git clone https://github.com/gisma/envimetR.git
 #------------------------------------------------------------------------------
-rm(list = ls()) 
 
-# 0 - additional libraries
-#----------------
-library(gtools)
-require(envimaR)
+# 0 - load packages
+#-----------------------------
+library(envimaR)
+library(rprojroot)
+root_folder = find_rstudio_root_file()
 
-# 1 - source files
-#-----------------
+source(file.path(root_folder, "src/functions/000_setup.R"))
 
-## source setup file 
-## NOTE you MUST adapt the last line according to your needs
-cat(":::: sourcing setup file \n")
-source(file.path(envimaR::alternativeEnvi(root_folder = "~/edu/mpg-envinsys-plygrnd",
-                                          alt_env_id = "COMPUTERNAME",
-                                          alt_env_value = "PCRZP",
-                                          alt_env_root_folder = "F:/BEN/edu/mpg-envinsys-plygrnd"),
-                 "msc-phygeo-class-of-2020-creu/src/fun/000_setup.R"))
+set.seed(123)
+
 
 # 2 - define variables
 #---------------------
@@ -46,7 +39,7 @@ source(file.path(envimaR::alternativeEnvi(root_folder = "~/edu/mpg-envinsys-plyg
 crs_rgb=sp::CRS("+init=epsg:25832")
 
 
-# modify cropping extent according to example training data as provided by: 
+# modify cropping extent according to example training data as provided by:
 # https://github.com/HannaMeyer/OpenGeoHub_2019/blob/master/practice/data/
 # Download github archive
 url<-"https://github.com/HannaMeyer/OpenGeoHub_2019/archive/master.zip"
@@ -70,7 +63,7 @@ ext <- extent(trainSites)
 mergename=file.path(envrmt$path_aerial,"MOF_rgb_merged.tif")
 outname=file.path(envrmt$path_aerial,"MOF_rgb.tif")
 
-# start processing 
+# start processing
 #-----------------------------------------
 
 ##-- if necessary correcting the white stripes
@@ -85,7 +78,7 @@ destripe_rgb(files = tif_files,
 if(length(mergename)>0){
   merged_mof = raster::stack(mergename)
 } else {
-  
+
 ##-- merge and re-project the single images
 # NOTE adapt the wildcard in the glob2rx call if necessary
   tif_files = list.files(envrmt$path_aerial_org, pattern = glob2rx("4*.tif"), full.names = TRUE)
@@ -99,7 +92,7 @@ if(length(mergename)>0){
 # cropping it
 if(!file.exists(outname)){
 cat("crop AOI\n")
-aoi_RGB  =  crop(merged_mof, ext)	
+aoi_RGB  =  crop(merged_mof, ext)
 
 # save the croped raster
 raster::writeRaster(aoi_RGB ,

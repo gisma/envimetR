@@ -1,5 +1,5 @@
 #------------------------------------------------------------------------------
-# Type: control script 
+# Type: control script
 # Name: 20_RS_calculate_synthetic_bands.R
 # Author: Chris Reudenbach, creuden@gmail.com
 # Description:  - calculate on base of RGB image(s)
@@ -7,37 +7,35 @@
 #               - structural channels
 #               - statistical derivations
 
-# Data:         corrected RGB image of AOI 
-# Output:       comprehensive image stack of useful bands 
-# Details:      it is crucial to get find an adequate kernel size wth respect to 
-#               the main target objects size. This will increase the model results 
+# Data:         corrected RGB image of AOI
+# Output:       comprehensive image stack of useful bands
+# Details:      it is crucial to get find an adequate kernel size wth respect to
+#               the main target objects size. This will increase the model results
 #               considerably. for tree crowns 20 is approx. fair
 # Copyright: Chris Reudenbach, Thomas Nauss 2017,2020, GPL (>= 3)
-# git clone https://github.com/GeoMOER-Students-Space/msc-phygeo-class-of-2020-creu.git
+# git clone https://github.com/gisma/envimetR.git
 #------------------------------------------------------------------------------
-rm(list = ls()) 
 
-if(!exists("envrmt")){
-  # 0 - load packages
-  #-----------------------------
-  require(envimaR)
-  
-  # 1 - source files
-  #-----------------
-  source(file.path(envimaR::alternativeEnvi(root_folder = "~/edu/mpg-envinsys-plygrnd", alt_env_id = "COMPUTERNAME", alt_env_value = "PCRZP", alt_env_root_folder = "F:/BEN/edu/mpg-envinsys-plygrnd"),
-                   "msc-phygeo-class-of-2020-creu/src/fun/000_setup.R"))
-}
+
+library(envimaR)
+library(rprojroot)
+root_folder = find_rstudio_root_file()
+
+source(file.path(root_folder, "src/functions/000_setup.R"))
+
+
 
 # 2 - define variables
 #-----------------------------
 # link to the GI packages - adapt it to your needs
 otb  = link2GI::linkOTB(searchLocation = "/usr/bin/")
 gdal  = link2GI::linkGDAL()
+
 # clean run/tmp dir
 unlink(paste0(envrmt$path_tmp,"*"), force = TRUE)
 
 
-# 3 - start code 
+# 3 - start code
 #-----------------
 # calculation of synthetic bands using the make_syn_bands function which is extracted from the uavRst package
 
@@ -47,7 +45,7 @@ res <- make_syn_bands(calculateBands    = T,
                       suffixTrainImg    = "MOF_area" ,
                       rgbi              = T,
                       indices           =  c("HUE","VVI","TGI","RI","SCI","BI","CI","SI","HI","VARI","NDTI","NGRDI","GRVI","GLI","GLAI","SAT","SHP"),
-                      channels          = "PCA_RGB", 
+                      channels          = "PCA_RGB",
                       hara              = F,
                       haraType          = c("simple"),
                       stat              = T,

@@ -1,13 +1,14 @@
-#---- mpg course basic setup
+#----  basic setup envimetR
 # install/check from github
-#devtools::install_github("envima/envimaR")
+devtools::install_github("envima/envimaR")
 #devtools::install_github("gisma/uavRst")
-#devtools::install_github("r-spatial/link2GI")
-#devtools::install_github("HannaMeyer/CAST")
+devtools::install_github("r-spatial/link2GI")
+devtools::install_github("HannaMeyer/CAST")
 
 library(envimaR)
-
-packagesToLoad = c("scriptName","lidR", "link2GI", "mapview", "raster", "rgdal", "rlas", "sp",  "sf" ,"caret", "dplyr","plyr","CAST","doParallel")
+packagesToLoad = c("scriptName","lidR", "link2GI", "mapview", "raster", "rgdal",
+                   "rlas", "sp",  "sf" ,"caret", "dplyr","plyr","CAST","doParallel",
+                   "sen2r","tidyr","cluster","ClusteR","gtools")
 
 mvTop<-mapview::mapviewPalette("mapviewTopoColors")
 mvSpec<-mapview::mapviewPalette("mapviewSpectralColors")
