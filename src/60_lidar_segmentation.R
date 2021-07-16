@@ -1,11 +1,12 @@
 #------------------------------------------------------------------------------
 # Type: control script 
-# Name: 20_segmentation_Catalog.R
+# Name: 60_lidar_segementation.R
 # Author: Chris Reudenbach, creuden@gmail.com
-# Description:  calculates a comprehensive set of tree segmentations based on the CHM data set
-# Data: CHM raster file as derived by 10_CHM_Catalog.R 
-# Output: Segmentation layers
-# Copyright: Chris Reudenbach, Thomas Nauss 2017,2020, GPL (>= 3)
+# Description:  derives pc tree segments and hulls and the standard metrics
+
+# Data: point cloud, dsm and dtm as derived by 10_CHM_Catalog.R  
+# Output: sf polygon object
+# Copyright: Chris Reudenbach 2021, GPL (>= 3)
 #------------------------------------------------------------------------------
 
 ## clean your environment
@@ -31,10 +32,11 @@ source(file.path(envimaR::alternativeEnvi(root_folder = "~/edu/mpg-envinsys-plyg
                                           alt_env_root_folder = "F:/BEN/edu/mpg-envinsys-plygrnd"),
                  "msc-phygeo-class-of-2020-creu/src/fun/000_setup.R"))
 
-
+library(tidyr)
+library(dplyr)
 # 2 - define variables
 #---------------------
-
+fn = "5-25_MOF_rgb"
 ## ETRS89 / UTM zone 32N
 epsg = 25832
 # get viridris color palette
@@ -42,32 +44,50 @@ pal<-mapview::mapviewPalette("mapviewTopoColors")
 #Saftflusshalbmond
 coord = c(xmin,ymin,xmax,ymax)
 
+min_tree_height = 5
 dtm  = raster::raster(file.path(envrmt$path_data,"dtm_knnidw_1m.tif")) 
-csm  = raster::raster(file.path(envrmt$path_data,"dsm_p2r_1m.tif"))
-las_file=lidR::readLAS(paste0(envrmt$path_lidar_level0,"MOF_lidar_2018.las"))
-las_file = lidR::clip_rectangle(las_file, 
-                                xleft = coord[[1]], 
-                                ybottom = coord[[2]], 
-                                xright = coord[[3]], 
-                                ytop = coord[[4]])
-th = 2
-tol=0.2
-ex=3
+dsm  = raster::raster(file.path(envrmt$path_data,"dsm_p2r_1m.tif"))
+las_file=lidR::readLAS("/home/creu/edu/mpg-envinsys-plygrnd/data/lidar/level1/crop_aoimof.las")
 
-
+crs(dtm) = projection(las_file)
+crs(dsm) = projection(las_file)
 # 3 - start code 
 #-----------------
-
-chm=csm-dtm
+# calulate the chm
+chm=dsm-dtm
+# normalize  trees
 ht <- lidR::normalize_height(las_file, dtm)
-f <- function(x) { x * 0.07 + 3 }
-ttops <- find_trees(chm, lmf(f,hmin = 8,shape = "circular"))
-ht_ws = segment_trees(las, dalponte2016(chm, ttops))
-trs <- lidR::filter_poi(ht_ws, !is.na(treeID))
-hulls <- lidR::delineate_crowns(trs, type = "concave", concavity = 2, func = .stdmetrics)
-hulls = as(hulls,"sf")
-saveRDS(hulls,file= file.path(envrmt$path_level1,"aoimof_tree_segments.rds"))
-st_write(hullsfile= file.path(envrmt$path_level1,"aoimof_tree_segments.shp"))
-# 4 - visualize 
-# -------------------
-mapview(hulls,zclo="")
+
+# pc based detection performs poor and is very slow
+#st = segment_trees(ht, li2012(speed_up = 6))
+
+# segmentation steps for CHM based algorithms
+# there are multiple solution and it is a wide field for sensitvity studies
+# a good approach is the estimation ov variable tree heights as a proxy for the number of maxima
+# togther with the lmf() function
+# hfunc = function(x) { x * 0.07 + 3 }      # from lidR examples
+# hfunc = function(x) {7.01565 + 0.45870 * x} # https://doi.org/10.14358/PERS.70.5.589
+# hfunc = function(x) { 2.72765 + 0.15628 * x} #DOI: 10.5589/m03-027
+# ttops = find_trees(chm, lmf(f, hmin = min_tree_height, shape = "circular"))
+# additionally you may use for huge areas the lmfauto() function
+# ttops =  find_trees(ht, lmfauto(hmin = min_tree_height))
+
+# the lidR package lidRplugins provides some usefull stuff especially the multichm() funktion
+# wich provides a fairly good tree top estimation in heteregonous forests
+ttops = find_trees(ht, multichm(res = 1, ws = 7))
+
+# the best segmentation performance is derived by the dalponte algorithm (as far as lidR is used)
+st = segment_trees(ht, dalponte2016(chm, treetops=ttops))
+
+# have a look
+# x = plot(st,color = "treeID")
+# add_treetops3d(x, ttops)
+
+# no filtering for non tree ids and deriving statistics and the projected hull 
+trees   = lidR::filter_poi(st, !is.na(treeID))
+hulls = lidR::delineate_crowns(trees, type = "concave", concavity = 2,func= .stdmetrics)
+
+# save it to a common  file format
+hulls_sf = as(hulls,"sf")
+st_write(hulls_sf,file.path(envrmt$path_level1,"sapflow_tree_segments_multichm_dalponte2016.gpkg"))
+lidR::writeLAS(trees,file.path(envrmt$path_level1,"sapflow_tree_segments_multichm_dalponte2016.las"))

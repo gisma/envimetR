@@ -1,38 +1,25 @@
 #------------------------------------------------------------------------------
-# Type: control script 
+# Type: control script
 # Name: 30_make_enviMet_simple_plants.R
 # Author: Chris Reudenbach, creuden@gmail.com
-# Description:  derives tree hulls and the corresponding values for 
-#               tree species, height, LAD , albedo, transmissivity, root profile, 
+# Description:  derives tree hulls and the corresponding values for
+#               tree species, height, LAD , albedo, transmissivity, root profile,
 #               lucc classes and seasonality
-# Data: point cloudand dsm and dtm as derived by 10_CHM_Catalog.R  
+# Data: point cloudand dsm and dtm as derived by 10_CHM_Catalog.R
 #       sentinel 2 bands 2,3,4,8, classification of tree species  40_RS_high_resolution data
 # Output: Envimet simple plant database file
 # Copyright: Chris Reudenbach 2021, GPL (>= 3)
 #------------------------------------------------------------------------------
 
 ## clean your environment
-rm(list=ls()) 
+rm(list=ls())
 
-# 0 - load packages
-#-----------------------------
+library(envimaR)
+library(rprojroot)
+root_folder = find_rstudio_root_file()
 
+source(file.path(root_folder, "src/functions/000_setup.R"))
 
-## dealing with the crs warnings is cumbersome and complex
-## you may reduce the warnings with uncommenting  the following line
-## for a deeper  however rarely less confusing understanding have a look at:
-## https://rgdal.r-forge.r-project.org/articles/CRS_projections_transformations.html
-## https://www.r-spatial.org/r/2020/03/17/wkt.html
-rgdal::set_thin_PROJ6_warnings(TRUE)
-
-
-# 1 - source files
-#-----------------
-source(file.path(envimaR::alternativeEnvi(root_folder = "~/edu/mpg-envinsys-plygrnd",
-                                          alt_env_id = "COMPUTERNAME",
-                                          alt_env_value = "PCRZP",
-                                          alt_env_root_folder = "F:/BEN/edu/mpg-envinsys-plygrnd"),
-                 "msc-phygeo-class-of-2020-creu/src/fun/000_setup.R"))
 
 library(tidyr)
 library(dplyr)
@@ -47,6 +34,7 @@ pal<-mapview::mapviewPalette("mapviewTopoColors")
 coord = c(xmin,ymin,xmax,ymax)
 
 min_tree_height = 2
+
 trees=lidR::readLAS(file.path(envrmt$path_sapflow,"sapflow_tree_segments_multichm_dalponte2016.las"))
 hulls_sf=st_read(file.path(envrmt$path_sapflow,"sapflow_tree_segments_multichm_dalponte2016.gpkg"))
 
@@ -67,31 +55,37 @@ cmr$ip.radius = "1"
 
 
 
-filter_treespecies = runOTB(cmr,gili = otb,quiet = FALSE,retRaster = TRUE)  
+filter_treespecies = runOTB(cmr,gili = otb,quiet = FALSE,retRaster = TRUE)
 #filter_treespecies=raster(paste0(envrmt$path_aerial,fn,"_majority_out.tif"))
 
 ## extract the values
 species_ex = exactextractr::exact_extract(filter_treespecies, hulls_sf,  force_df = TRUE,
-                                         include_cols = "treeID") 
-species_ex = dplyr::bind_rows(species_ex) 
+                                         include_cols = "treeID")
+species_ex = dplyr::bind_rows(species_ex)
 
 # calulate mode per tree
-species_hulls = species_ex %>% group_by(treeID) %>%  
+species_hulls = species_ex %>% group_by(treeID) %>%
   dplyr::summarize(species_median = median(value, na.rm=TRUE),
                    species_mode = modeest::mlv(value, method='mfv'))
 species_hulls = inner_join(hulls_sf,species_hulls)
 species_sf=species_hulls[,c("treeID","ZTOP","zmax","zmean","zsd","zskew","species_mode","area")]
 st_write(species_hulls,file.path(envrmt$path_level1,"sapflow_tree_segments_multichm_dalponte2016_species.gpkg"),append=FALSE)
+#species_hulls = st_read(file.path(envrmt$path_sapflow ,"sapflow_tree_segments_multichm_dalponte2016_species.gpkg"))
 
 # calculate the LAD metrics for the derived trees
 # review vertical LAI ditribution http://dx.doi.org/10.3390/rs12203457
 lad_tree = tree_metrics(trees, func = ~LAD(Z))
+# GAP and transmittance metrics
+# https://www.isprs.org/proceedings/xxxvi/3-W52/final_papers/Hopkinson_2007.pdf
+gap_tree = tree_metrics(trees, func = ~lidR::gap_fraction_profile(Z))
+gap_tree$gf = gap_tree$gf * 0.8
+plot(gap_tree)
 lt=st_drop_geometry(as(lad_tree,"sf"))
 lad_trees = inner_join(lt,species_sf)
 
 tmp = lt %>%
-  group_by(treeID,z) %>% 
-  spread(z,lad,fill = 0,sep = "_") 
+  group_by(treeID,z) %>%
+  spread(z,lad,fill = 0,sep = "_")
 lad_trees =  inner_join(tmp,lad_trees)
 
 
@@ -101,20 +95,20 @@ lai = raster(paste0(envrmt$path_sapflow,"2021-06-13-00:00_2021-06-13-23:59_Senti
 
 ## extract the values
 lai_ex = exactextractr::exact_extract(lai, hulls_sf,  force_df = TRUE,
-                                         include_cols = "treeID") 
-lai_ex = dplyr::bind_rows(lai_ex) 
+                                         include_cols = "treeID")
+lai_ex = dplyr::bind_rows(lai_ex)
 lai_ex$coverage_fraction=NULL
 names(lai_ex)=c("treeID","lai")
 alb_ex = exactextractr::exact_extract(albedo, hulls_sf,  force_df = TRUE,
-                                      include_cols = "treeID",) 
-alb_ex = dplyr::bind_rows(alb_ex) 
+                                      include_cols = "treeID",)
+alb_ex = dplyr::bind_rows(alb_ex)
 alb_ex$coverage_fraction=NULL
 names(alb_ex)=c("treeID","albedo")
 l_trees =  inner_join(lai_ex,lad_trees)
 a_trees = inner_join(alb_ex,l_trees)
 
 # make mean of all unique treeIds
-tree = a_trees %>% group_by(treeID) %>%  
+tree = a_trees %>% group_by(treeID) %>%
   mutate_all(.funs = mean) %>%
   distinct(.keep_all = TRUE)
 tree$geom =NULL
@@ -122,11 +116,11 @@ t_lad=tree
 tree_clust = tree[,c("treeID","albedo","lai","zmax","zmean","zskew","species_mode")]
 
 
-tree_tmp = hulls_sf[ , names(hulls_sf) %in% c("treeID","geom")] 
+tree_tmp = hulls_sf[ , names(hulls_sf) %in% c("treeID","geom")]
 t=inner_join(tree_clust,tree_tmp)
 tree_clust_sf=st_as_sf(t)
 mapview(tree_clust_sf,zcol="albedo")
-#t=st_drop_geometry(trees_sf) 
+#t=st_drop_geometry(trees_sf)
 header_height=seq(2.5,44.5,1)
 #header_height=c(2.5, 3.5,   4.5,   5.5,   6.5,   7.5,   8.5,   9.5,   10.5,  11.5,  12.5,  13.5,  14.5,  15.5,  16.5,17.5,  18.5,  19.5,  20.5,  21.5,  22.5,  23.5,  24.5,  25.5,  26.5,  27.5,  28.5,  29.5,  30.5,  31.5,  32.5,33.5,  34.5,  35.5,  36.5,  37.5,  38.5,  39.5,  40.5,  41.5,  42.5,  43.5,  44.5)
 lad= tree %>% distinct(across(contains(".5")))
