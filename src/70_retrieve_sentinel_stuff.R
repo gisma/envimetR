@@ -23,9 +23,9 @@ source(file.path(root_folder, "src/functions/000_setup.R"))
 
 # 2 - define variables
 #---------------------
-out_dir =envrmt$path_sapflow
-safe_dir  <- envrmt$path_SAFE  # folder to store downloaded SAFE
-myextent  <- st_read(file.path(envrmt$path_sapflow,"sapflow_tree_segments_multichm_dalponte2016.gpkg"))
+out_dir   = envrmt$path_sapflow
+safe_dir  = envrmt$path_SAFE  # folder to store downloaded SAFE
+myextent  = st_read(file.path(envrmt$path_sapflow,"sapflow_tree_segments_multichm_dalponte2016.gpkg"))
 
 
 out_paths_1 <- sen2r(

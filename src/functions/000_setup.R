@@ -8,7 +8,7 @@ devtools::install_github("HannaMeyer/CAST")
 library(envimaR)
 packagesToLoad = c("scriptName","lidR", "link2GI", "mapview", "raster", "rgdal",
                    "rlas", "sp",  "sf" ,"caret", "dplyr","plyr","CAST","doParallel",
-                   "sen2r","tidyr","cluster","ClusteR","gtools")
+                   "sen2r","tidyr","cluster","ClusterR","gtools")
 
 mvTop<-mapview::mapviewPalette("mapviewTopoColors")
 mvSpec<-mapview::mapviewPalette("mapviewSpectralColors")

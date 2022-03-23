@@ -41,7 +41,7 @@ sapflow_species=readRDS(paste0(envrmt$path_aerial_level0,"sfprediction_ffs_",fn,
 sapflow_species = raster::crop(sapflow_species,extent(477500, 478218, 5631730, 5632500))
 
 #ClassificationMapRegularization majority filter
-otb  = link2GI::linkOTB(searchLocation = "/usr/bin/")
+otb  = link2GI::linkOTB(searchLocation = "~/apps/OTB-8.0.0-Linux64/")
 # assign the prediction stack
 fbFN = paste0(envrmt$path_aerial,fn,"_majority_in.tif")
 writeRaster(sapflow_species,fbFN,progress="text",overwrite=TRUE)
