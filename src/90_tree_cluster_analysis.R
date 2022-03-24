@@ -84,24 +84,25 @@ tree_cluster$treeID = NULL
 st_write(tree_clust_sf,file.path(envrmt$path_sapflow,"sapflow_tree_all_cluster_sf.gpkg"), append= FALSE)
 saveRDS(tree_cluster,file.path(envrmt$path_sapflow,"sapflow_tree_cluster.rds"))
 mapview(tree_clust_sf,zcol="pr_arma")
-tree_clust$lai
+treeclust=readRDS(file.path(envrmt$path_sapflow,"sapflow_tree_cluster.rds"))
 
-#--- Visualisation of the cluster results
-# cluster panel PAM und Kmeans mit silhoutte Grafik
 
-# ATTENTION
-clust_fun = "kmeans"
-k_number = 6
+# #--- Visualisation of the cluster results
+# # cluster panel PAM und Kmeans mit silhoutte Grafik
+#
+# # ATTENTION
+# clust_fun = "kmeans"
+# k_number = 6
 
-#KMEANS -----------------------------
-km <- factoextra::eclust(dat, k= k_number, seed = seed, FUNcluster = clust_fun,
-                         hc_metric = "euclidian" ,hc_method = "kmeans",nstart=25)
-km.clus <- factoextra::fviz_cluster(km,main = "kmeans eclust")
-km.sil <- factoextra::fviz_silhouette(km)
+# #KMEANS -----------------------------
+# km <- factoextra::eclust(dat, k= k_number, seed = seed, FUNcluster = clust_fun,
+#                          hc_metric = "euclidian" ,hc_method = "kmeans",nstart=25)
+# km.clus <- factoextra::fviz_cluster(km,main = "kmeans eclust")
+# km.sil <- factoextra::fviz_silhouette(km)
 
 # <PLANT>
-#   <ID> 0000SM </ID>
-#   <Description> Tree 20 m very dense, distinct crown layer </Description>
+#   <ID> 0001cl </ID>
+#   <Description> cluster tree type 01 </Description>
 #   <AlternativeName> (None) </AlternativeName>
 #   <Planttype> 0 </Planttype>
 #   <Leaftype> 1 </Leaftype>
