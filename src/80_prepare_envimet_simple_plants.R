@@ -41,7 +41,7 @@ sapflow_species=readRDS(paste0(envrmt$path_aerial_level0,"sfprediction_ffs_",fn,
 sapflow_species = raster::crop(sapflow_species,extent(477500, 478218, 5631730, 5632500))
 
 #ClassificationMapRegularization majority filter
-otb  = link2GI::linkOTB(searchLocation = "~/apps/OTB-8.0.0-Linux64/")
+otb  = link2GI::linkOTB(searchLocation = "~/apps/OTB-8.1.2-Linux64/")
 # assign the prediction stack
 fbFN = paste0(envrmt$path_aerial,fn,"_majority_in.tif")
 writeRaster(sapflow_species,fbFN,progress="text",overwrite=TRUE)
@@ -53,7 +53,7 @@ cmr$ip.radius = "1"
 
 
 
-filter_treespecies = runOTB(cmr,gili = otb,quiet = FALSE,retRaster = TRUE)
+filter_treespecies = runOTB(cmr,gili = otb$pathOTB,quiet = FALSE,retRaster = TRUE)
 #filter_treespecies=raster(paste0(envrmt$path_aerial,fn,"_majority_out.tif"))
 
 ## extract the values
@@ -63,7 +63,7 @@ species_ex = dplyr::bind_rows(species_ex)
 
 # calulate mode per tree
 species_hulls = species_ex %>% group_by(treeID) %>%
-  dplyr::summarize(species_median = median(value, na.rm=TRUE),
+  dplyr::reframe(species_median = median(value, na.rm=TRUE),
                    species_mode = modeest::mlv(value, method='mfv'))
 species_hulls = inner_join(hulls_sf,species_hulls)
 species_sf=species_hulls[,c("treeID","ZTOP","zmax","zmean","zsd","zskew","species_mode","area")]
@@ -143,3 +143,4 @@ trees_all = inner_join(lad_pred,tree_clust)
 trees_all =inner_join(trees_all,tree_tmp )
 trees_all_sf=st_as_sf(trees_all)
 st_write(trees_all_sf,file.path(envrmt$path_sapflow,"sapflow_tree_all_sf.gpkg"),append = FALSE)
+trees_all_sf=st_read(file.path(envrmt$path_sapflow,"sapflow_tree_all_sf.gpkg"))

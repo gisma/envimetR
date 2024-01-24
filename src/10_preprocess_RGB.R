@@ -75,9 +75,9 @@ destripe_rgb(files = tif_files,
 
 
 ##-- if the merge file exist just load it for cropping
-if(length(mergename)>0){
-  merged_mof = raster::stack(mergename)
-} else {
+# if(length(mergename)>0){
+#   merged_mof = raster::stack(mergename)
+# } else {
 
 ##-- merge and re-project the single images
 # NOTE adapt the wildcard in the glob2rx call if necessary
@@ -87,7 +87,7 @@ if(length(mergename)>0){
                          cropoutput=outname,
                          proj4 = crs_rgb,
                          ext = ext)
-}
+# }
 
 # cropping it
 if(!file.exists(outname)){

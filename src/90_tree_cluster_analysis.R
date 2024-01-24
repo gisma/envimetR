@@ -1,13 +1,13 @@
 #------------------------------------------------------------------------------
 # Type: helper script
-# Name: fun_cluster.R
+# Name: 90_tree_cluster_analysis.R
 # Author: Chris Reudenbach, creuden@gmail.com
 # Description:  - provides some metrics abut clustering and determins the optimal number
 #                  clusters as well as the optimal clusteralgorithm based on:
 #                  Z statistic, LAI,Albedo, Tree species class and 10 LAD classes
 #
 #
-# Data:  dataframe as provided by the 30_make_enviMet_simple_plants.R script
+# Data:  dataframe as provided by the 80_prepare_enviMet_simple_plants.R script
 # Output: cluster number and algorithm as well as the clustered data table
 # Copyright: Chris Reudenbach, 2021, GPL (>= 3)
 # git clone https://github.com/gisma/envimetR.git
@@ -82,7 +82,9 @@ tree_cluster$treeID = NULL
 
 
 st_write(tree_clust_sf,file.path(envrmt$path_sapflow,"sapflow_tree_all_cluster_sf.gpkg"), append= FALSE)
+tree_clust_sf=st_read(file.path(envrmt$path_sapflow,"sapflow_tree_all_cluster_sf.gpkg"))
 saveRDS(tree_cluster,file.path(envrmt$path_sapflow,"sapflow_tree_cluster.rds"))
+saveRDS(tree_clust_sf,file.path(envrmt$path_sapflow,"sapflow_tree_all_cluster_sf.rds"))
 mapview(tree_clust_sf,zcol="pr_arma")
 treeclust=readRDS(file.path(envrmt$path_sapflow,"sapflow_tree_cluster.rds"))
 
@@ -100,6 +102,59 @@ treeclust=readRDS(file.path(envrmt$path_sapflow,"sapflow_tree_cluster.rds"))
 # km.clus <- factoextra::fviz_cluster(km,main = "kmeans eclust")
 # km.sil <- factoextra::fviz_silhouette(km)
 
+
+# library(XML)
+#
+# # Create function to generate an XML file
+# createXML <- function(x){
+#   # Get data from current column being processed
+#   holding_date <- x[1]
+#   holding_lineamount_value <- x[2]
+#
+#   # Create main node
+#   xmlfile <- newXMLNode("MainXML")
+#
+#   # Add nodes to main node
+#   xmlfile <- addChildren(xmlfile, newXMLNode("Date", holding_date))
+#   xmlfile <- addChildren(xmlfile, newXMLNode("LineAmountTypes", "Inclusive"))
+#   xmlfile <- addChildren(xmlfile, newXMLNode("Description", "total daily income"))
+#   xmlfile <- addChildren(xmlfile, newXMLNode("LineAmount", holding_lineamount_value))
+#   xmlfile <- addChildren(xmlfile, newXMLNode("LineItem"))
+#   xmlfile <- addChildren(xmlfile, newXMLNode("LineItems"))
+#
+#   # Create BankAccount node
+#   ba <- newXMLNode("BankAccount")
+#
+#   # Add Code node to BankAccount node
+#   ba <- addChildren(ba, newXMLNode("Code","value"))
+#
+#   # Add BankAccount node to main node
+#   xmlfile <- addChildren(xmlfile, ba)
+#
+#   # Return the xml file
+#   return(xmlfile)
+# }
+#
+# # Create dataframe
+# df <- data.frame(Date = c("20/06/2017", "22/06/2017","23/06/2017"),
+#                  Income = c(2000,3023,4021),
+#                  stringsAsFactors = FALSE)
+#
+# # Transpose dataframe to be processed with lapply
+# tdf <- as.data.frame(t(df))
+#
+# # Create a list of XML files for each column of transposed dataframe
+# xml.list <- lapply(tdf, createXML)
+
+# <Header>
+#   <filetype>DATA</filetype>
+#   <version>1</version>
+#   <revisiondat>5/19/2021 6:10:47 PM</revisiondate>
+#   <remark>Envi-Data</remark>
+#   <checksum>3340896</checksum>
+#   <encryptionlevel>1</encryptionlevel>
+#   </Header>
+#   <SOIL>
 # <PLANT>
 #   <ID> 0001cl </ID>
 #   <Description> cluster tree type 01 </Description>
