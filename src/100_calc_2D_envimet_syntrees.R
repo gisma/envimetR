@@ -34,33 +34,33 @@ treeclust=readRDS(file.path(envrmt$path_sapflow,"sapflow_tree_all_cluster_sf.rds
 # # Create function to generate an XML file
 # move this function later to the function folder
 
-createXML <- function(x){
+createXML =  function(x){
   # Get data from current column being processed
-  LAD <- x[1]
-  RAD <- x[2]
-  SEASON <- x[3]
-  DEPTH <- x[4]
-  HEIGHT <- x[5]
-  ALBEDO  <- x[6]
-  ID  <- x[7]
+  LAD =  x[1]
+  RAD =  x[2]
+  SEASON =  x[3]
+  DEPTH =  x[4]
+  HEIGHT =  x[5]
+  ALBEDO  =  x[6]
+  ID  =  x[7]
 #   # Create main node
-xmlfile <- newXMLNode("PLANT")
+xmlfile =  newXMLNode("PLANT")
 #   # Add nodes to main node
-xmlfile <- addChildren(xmlfile, newXMLNode("ID",ID))
-xmlfile <- addChildren(xmlfile, newXMLNode("Description", "Synthetic LiDARTree"))
-xmlfile <- addChildren(xmlfile, newXMLNode("AlternativeName", "(None)"))
-xmlfile <- addChildren(xmlfile, newXMLNode("Planttype", "0"))
-xmlfile <- addChildren(xmlfile, newXMLNode("Leaftype", "1"))
-xmlfile <- addChildren(xmlfile, newXMLNode("Albedo",ALBEDO))
-xmlfile <- addChildren(xmlfile, newXMLNode("Transmittance","0.30000"))
-xmlfile <- addChildren(xmlfile, newXMLNode("rs_min","400.00000"))
-xmlfile <- addChildren(xmlfile, newXMLNode("Height",HEIGHT))
-xmlfile <- addChildren(xmlfile, newXMLNode("Depth", DEPTH))
-xmlfile <- addChildren(xmlfile, newXMLNode("LAD-Profile",LAD ))
-xmlfile <- addChildren(xmlfile, newXMLNode("RAD-Profile", RAD))
-xmlfile <- addChildren(xmlfile, newXMLNode("Season-Profile", SEASON))
-xmlfile <- addChildren(xmlfile, newXMLNode("Group", "- Legacy | SynTrees"))
-xmlfile <- addChildren(xmlfile, newXMLNode("color", "55000"))
+xmlfile =  addChildren(xmlfile, newXMLNode("ID",ID))
+xmlfile =  addChildren(xmlfile, newXMLNode("Description", "Synthetic LiDARTree"))
+xmlfile =  addChildren(xmlfile, newXMLNode("AlternativeName", "(None)"))
+xmlfile =  addChildren(xmlfile, newXMLNode("Planttype", "0"))
+xmlfile =  addChildren(xmlfile, newXMLNode("Leaftype", "1"))
+xmlfile =  addChildren(xmlfile, newXMLNode("Albedo",ALBEDO))
+xmlfile =  addChildren(xmlfile, newXMLNode("Transmittance","0.30000"))
+xmlfile =  addChildren(xmlfile, newXMLNode("rs_min","400.00000"))
+xmlfile =  addChildren(xmlfile, newXMLNode("Height",HEIGHT))
+xmlfile =  addChildren(xmlfile, newXMLNode("Depth", DEPTH))
+xmlfile =  addChildren(xmlfile, newXMLNode("LAD-Profile",LAD ))
+xmlfile =  addChildren(xmlfile, newXMLNode("RAD-Profile", RAD))
+xmlfile =  addChildren(xmlfile, newXMLNode("Season-Profile", SEASON))
+xmlfile =  addChildren(xmlfile, newXMLNode("Group", "- Legacy | SynTrees"))
+xmlfile =  addChildren(xmlfile, newXMLNode("color", "55000"))
 
 #
 #   # Return the xml file
@@ -70,20 +70,20 @@ xmlfile <- addChildren(xmlfile, newXMLNode("color", "55000"))
 # # Create dataframe
 # Content should be derived from the statistics of the clustered tree segmentation file
 
- df <- data.frame(  LAD <- c(" 0.15000,0.15000,0.15000,0.15000,0.65000,2.15000,2.18000,2.05000,1.72000,0.00000 " ),
-                    RAD <- c(" 0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.00000 "),
-                    SEASON <- c(" 1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000 "),
-                    DEPTH <- c(" 2.00000 ") ,
-                    HEIGHT <- c(" 20.00000 "),
-                    ALBEDO  <-c(" 0.200000 "),
-                    ID  <- c(" 0000A1 "),
+ df =  data.frame(  LAD =  c(" 0.15000,0.15000,0.15000,0.15000,0.65000,2.15000,2.18000,2.05000,1.72000,0.00000 " ),
+                    RAD =  c(" 0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.00000 "),
+                    SEASON =  c(" 1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000 "),
+                    DEPTH =  c(" 2.00000 ") ,
+                    HEIGHT =  c(" 20.00000 "),
+                    ALBEDO  = c(" 0.200000 "),
+                    ID  =  c(" 0000A1 "),
                   stringsAsFactors = FALSE)
 
 # # Transpose dataframe to be processed with lapply
- tdf <- as.data.frame(t(df))
+ tdf =  as.data.frame(t(df))
 #
 # # Create a list of XML entris for each column of transposed dataframe
- xml.list <- lapply(tdf, createXML)
+ xml.list =  lapply(tdf, createXML)
 
 
  # $V1
