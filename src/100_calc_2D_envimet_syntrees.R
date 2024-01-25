@@ -69,6 +69,7 @@ xmlfile =  addChildren(xmlfile, newXMLNode("color", "55000"))
 #
 # # Create dataframe
 # Content should be derived from the statistics of the clustered tree segmentation file
+# the below one one contains the standard 20 m tree from the envi-mt data base as default
 
  df =  data.frame(  LAD =  c(" 0.15000,0.15000,0.15000,0.15000,0.65000,2.15000,2.18000,2.05000,1.72000,0.00000 " ),
                     RAD =  c(" 0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.00000 "),
