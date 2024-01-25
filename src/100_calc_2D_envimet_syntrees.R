@@ -24,7 +24,7 @@ set.seed(seed)
 ###--------- load data
 
 
-treeclust=readRDS(file.path(envrmt$path_sapflow,"sapflow_tree_cluster.rds"))
+treeclust=readRDS(file.path(envrmt$path_sapflow,"sapflow_tree_all_cluster_sf.rds"))
 
 
 
