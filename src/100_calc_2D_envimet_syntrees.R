@@ -2,7 +2,7 @@
 # Type: helper script
 # Name: 100_calc_2D_envimet_syntrees.R
 # Author: Chris Reudenbach, creuden@gmail.com
-
+# see also https://stackoverflow.com/questions/44635312/how-do-i-use-an-r-for-loop-to-repeatedly-fill-out-template-with-each-loop-using
 # Data: sf file as provided by the 90_tree_cluster_analysis.R script
 # Output: PLANT List for envimet
 # Copyright: Chris Reudenbach, 2024 GPL (>= 3)
