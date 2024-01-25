@@ -15,6 +15,7 @@
 #-----------------------------
 library(envimaR)
 library(rprojroot)
+library(XML)
 root_folder = find_rstudio_root_file()
 
 source(file.path(root_folder, "src/functions/000_setup.R"))
@@ -30,48 +31,57 @@ treeclust=readRDS(file.path(envrmt$path_sapflow,"sapflow_tree_cluster.rds"))
 
 
 
-# library(XML)
+#
 #
 # # Create function to generate an XML file
-# createXML <- function(x){
-#   # Get data from current column being processed
-#   holding_date <- x[1]
-#   holding_lineamount_value <- x[2]
-#
+createXML <- function(x){
+  # Get data from current column being processed
+  LAD <- x[1]
+  RAD <- x[2]
+  SEASON <- x[3]
+  DEPTH <- x[4]
+  HEIGHT <- x[5]
+  ALBEDO  <- x[6]
+  ID  <- x[7]
 #   # Create main node
-#   xmlfile <- newXMLNode("MainXML")
-#
+xmlfile <- newXMLNode("PLANT")
 #   # Add nodes to main node
-#   xmlfile <- addChildren(xmlfile, newXMLNode("Date", holding_date))
-#   xmlfile <- addChildren(xmlfile, newXMLNode("LineAmountTypes", "Inclusive"))
-#   xmlfile <- addChildren(xmlfile, newXMLNode("Description", "total daily income"))
-#   xmlfile <- addChildren(xmlfile, newXMLNode("LineAmount", holding_lineamount_value))
-#   xmlfile <- addChildren(xmlfile, newXMLNode("LineItem"))
-#   xmlfile <- addChildren(xmlfile, newXMLNode("LineItems"))
-#
-#   # Create BankAccount node
-#   ba <- newXMLNode("BankAccount")
-#
-#   # Add Code node to BankAccount node
-#   ba <- addChildren(ba, newXMLNode("Code","value"))
-#
-#   # Add BankAccount node to main node
-#   xmlfile <- addChildren(xmlfile, ba)
+xmlfile <- addChildren(xmlfile, newXMLNode("ID",ID))
+xmlfile <- addChildren(xmlfile, newXMLNode("Description", "Synthetic LiDARTree"))
+xmlfile <- addChildren(xmlfile, newXMLNode("AlternativeName", ""))
+xmlfile <- addChildren(xmlfile, newXMLNode("Planttype", "0"))
+xmlfile <- addChildren(xmlfile, newXMLNode("Leaftype", "1"))
+xmlfile <- addChildren(xmlfile, newXMLNode("Albedo",ALBEDO))
+xmlfile <- addChildren(xmlfile, newXMLNode("Transmittance","0.30000"))
+xmlfile <- addChildren(xmlfile, newXMLNode("rs_min","400.00000"))
+xmlfile <- addChildren(xmlfile, newXMLNode("Height",HEIGHT))
+xmlfile <- addChildren(xmlfile, newXMLNode("Depth", DEPTH))
+xmlfile <- addChildren(xmlfile, newXMLNode("LAD-Profile",LAD ))
+xmlfile <- addChildren(xmlfile, newXMLNode("RAD-Profile", RAD))
+xmlfile <- addChildren(xmlfile, newXMLNode("Season-Profile", SEASON))
+xmlfile <- addChildren(xmlfile, newXMLNode("Group", "SynTrees"))
+xmlfile <- addChildren(xmlfile, newXMLNode("color", "55000"))
+
 #
 #   # Return the xml file
-#   return(xmlfile)
-# }
+  return(xmlfile)
+ }
 #
 # # Create dataframe
-# df <- data.frame(Date = c("20/06/2017", "22/06/2017","23/06/2017"),
-#                  Income = c(2000,3023,4021),
-#                  stringsAsFactors = FALSE)
-#
+ df <- data.frame(  LAD <- c("0.15000,0.15000,0.15000,0.15000,0.65000,2.15000,2.18000,2.05000,1.72000,0.00000" ),
+                    RAD <- c("0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.00000 "),
+                    SEASON <- c("1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000"),
+                    DEPTH <- c("2.00000") ,
+                    HEIGHT <- c("20.00000"),
+                    ALBEDO  <-c("0.200000"),
+                    ID  <- c("0000A1"),
+                  stringsAsFactors = FALSE)
+
 # # Transpose dataframe to be processed with lapply
-# tdf <- as.data.frame(t(df))
+ tdf <- as.data.frame(t(df))
 #
 # # Create a list of XML files for each column of transposed dataframe
-# xml.list <- lapply(tdf, createXML)
+ xml.list <- lapply(tdf, createXML)
 
 # <Header>
 #   <filetype>DATA</filetype>
