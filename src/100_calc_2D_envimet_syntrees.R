@@ -48,7 +48,7 @@ xmlfile <- newXMLNode("PLANT")
 #   # Add nodes to main node
 xmlfile <- addChildren(xmlfile, newXMLNode("ID",ID))
 xmlfile <- addChildren(xmlfile, newXMLNode("Description", "Synthetic LiDARTree"))
-xmlfile <- addChildren(xmlfile, newXMLNode("AlternativeName", ""))
+xmlfile <- addChildren(xmlfile, newXMLNode("AlternativeName", "(None)"))
 xmlfile <- addChildren(xmlfile, newXMLNode("Planttype", "0"))
 xmlfile <- addChildren(xmlfile, newXMLNode("Leaftype", "1"))
 xmlfile <- addChildren(xmlfile, newXMLNode("Albedo",ALBEDO))
@@ -59,7 +59,7 @@ xmlfile <- addChildren(xmlfile, newXMLNode("Depth", DEPTH))
 xmlfile <- addChildren(xmlfile, newXMLNode("LAD-Profile",LAD ))
 xmlfile <- addChildren(xmlfile, newXMLNode("RAD-Profile", RAD))
 xmlfile <- addChildren(xmlfile, newXMLNode("Season-Profile", SEASON))
-xmlfile <- addChildren(xmlfile, newXMLNode("Group", "SynTrees"))
+xmlfile <- addChildren(xmlfile, newXMLNode("Group", "- Legacy | SynTrees"))
 xmlfile <- addChildren(xmlfile, newXMLNode("color", "55000"))
 
 #
@@ -68,21 +68,44 @@ xmlfile <- addChildren(xmlfile, newXMLNode("color", "55000"))
  }
 #
 # # Create dataframe
- df <- data.frame(  LAD <- c("0.15000,0.15000,0.15000,0.15000,0.65000,2.15000,2.18000,2.05000,1.72000,0.00000" ),
-                    RAD <- c("0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.00000 "),
-                    SEASON <- c("1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000"),
-                    DEPTH <- c("2.00000") ,
-                    HEIGHT <- c("20.00000"),
-                    ALBEDO  <-c("0.200000"),
-                    ID  <- c("0000A1"),
+# Content should be derived from the statistics of the clustered tree segmentation file
+
+ df <- data.frame(  LAD <- c(" 0.15000,0.15000,0.15000,0.15000,0.65000,2.15000,2.18000,2.05000,1.72000,0.00000 " ),
+                    RAD <- c(" 0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.00000 "),
+                    SEASON <- c(" 1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000 "),
+                    DEPTH <- c(" 2.00000 ") ,
+                    HEIGHT <- c(" 20.00000 "),
+                    ALBEDO  <-c(" 0.200000 "),
+                    ID  <- c(" 0000A1 "),
                   stringsAsFactors = FALSE)
 
 # # Transpose dataframe to be processed with lapply
  tdf <- as.data.frame(t(df))
 #
-# # Create a list of XML files for each column of transposed dataframe
+# # Create a list of XML entris for each column of transposed dataframe
  xml.list <- lapply(tdf, createXML)
 
+
+ # $V1
+ # <PLANT>
+ #   <ID> 0000A1 </ID>
+ #   <Description>Synthetic LiDARTree</Description>
+ #   <AlternativeName>(None)</AlternativeName>
+ #   <Planttype>0</Planttype>
+ #   <Leaftype>1</Leaftype>
+ #   <Albedo> 0.200000 </Albedo>
+ #   <Transmittance>0.30000</Transmittance>
+ #   <rs_min>400.00000</rs_min>
+ #   <Height> 20.00000 </Height>
+ #   <Depth> 2.00000 </Depth>
+ #   <LAD-Profile> 0.15000,0.15000,0.15000,0.15000,0.65000,2.15000,2.18000,2.05000,1.72000,0.00000 </LAD-Profile>
+ #   <RAD-Profile> 0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.00000 </RAD-Profile>
+ #   <Season-Profile> 1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000 </Season-Profile>
+ #   <Group>- Legacy | SynTrees</Group>
+ #   <color>55000</color>
+ #   </PLANT>
+
+ ## ORIGINAL
 # <Header>
 #   <filetype>DATA</filetype>
 #   <version>1</version>
