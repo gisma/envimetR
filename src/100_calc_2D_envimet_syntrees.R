@@ -3,11 +3,9 @@
 # Name: 100_calc_2D_envimet_syntrees.R
 # Author: Chris Reudenbach, creuden@gmail.com
 
-#
-#
-# Data:  dataframe as provided by the 80_prepare_enviMet_simple_plants.R script
-# Output: cluster number and algorithm as well as the clustered data table
-# Copyright: Chris Reudenbach, 2021, GPL (>= 3)
+# Data: sf file as provided by the 90_tree_cluster_analysis.R script
+# Output: PLANT List for envimet
+# Copyright: Chris Reudenbach, 2024 GPL (>= 3)
 # git clone https://github.com/gisma/envimetR.git
 #------------------------------------------------------------------------------
 
@@ -23,7 +21,7 @@ seed=123
 set.seed(seed)
 
 
-###--------- Estimation of the optimal methods and cluster numbers
+###--------- load data
 
 
 treeclust=readRDS(file.path(envrmt$path_sapflow,"sapflow_tree_cluster.rds"))
@@ -34,6 +32,8 @@ treeclust=readRDS(file.path(envrmt$path_sapflow,"sapflow_tree_cluster.rds"))
 #
 #
 # # Create function to generate an XML file
+# move this function later to the function folder
+
 createXML <- function(x){
   # Get data from current column being processed
   LAD <- x[1]
