@@ -21,16 +21,6 @@ seed=123
 set.seed(seed)
 
 
-###--------- load data
-
-
-treeclust=readRDS(file.path(envrmt$path_sapflow,"sapflow_tree_all_cluster_sf.rds"))
-
-
-
-
-#
-#
 # # Create function to generate an XML file
 # move this function later to the function folder
 
@@ -65,9 +55,19 @@ xmlfile =  addChildren(xmlfile, newXMLNode("color", "55000"))
 #
 #   # Return the xml file
   return(xmlfile)
- }
-#
-# # Create dataframe
+}
+
+
+###--------- load data
+treeclust=readRDS(file.path(envrmt$path_sapflow,"sapflow_tree_all_cluster_sf.rds"))
+
+
+
+# put here the extraction code
+
+
+
+# # then Create dataframe
 # Content should be derived from the statistics of the clustered tree segmentation file
 # the below one one contains the standard 20 m tree from the envi-mt data base as default
 
