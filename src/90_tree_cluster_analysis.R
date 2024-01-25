@@ -85,3 +85,16 @@ tree_clust_sf=st_read(file.path(envrmt$path_sapflow,"sapflow_tree_all_cluster_sf
 saveRDS(tree_cluster,file.path(envrmt$path_sapflow,"sapflow_tree_cluster.rds"))
 saveRDS(tree_clust_sf,file.path(envrmt$path_sapflow,"sapflow_tree_all_cluster_sf.rds"))
 mapview(tree_clust_sf,zcol="pr_arma")
+
+# #--- Visualisation of the cluster results
+# # cluster panel PAM und Kmeans mit silhoutte Grafik
+#
+# # ATTENTION
+# clust_fun = "kmeans"
+# k_number = 6
+
+# #KMEANS -----------------------------
+# km <- factoextra::eclust(dat, k= k_number, seed = seed, FUNcluster = clust_fun,
+#                          hc_metric = "euclidian" ,hc_method = "kmeans",nstart=25)
+# km.clus <- factoextra::fviz_cluster(km,main = "kmeans eclust")
+# km.sil <- factoextra::fviz_silhouette(km)

@@ -23,32 +23,11 @@ set.seed(seed)
 
 
 ###--------- Estimation of the optimal methods and cluster numbers
-#
-
-tree_all_sf = st_read(file.path(envrmt$path_sapflow,"sapflow_tree_all_sf.gpkg"))
-dat =st_drop_geometry(tree_all_sf)
-tree_tmp = tree_all_sf[ , names(tree_all_sf) %in% c("treeID","geom")]
-dat=dat[ , colSums(is.na(dat)) == 0]
-tid = dat[ , (names(dat) %in% c("treeID"))]
-data_clust = dat[ ,!(names(dat) %in% c("treeID")) ]#,"zmean","zmax","tree_species","lai","albedo"))]
-#dat$treeID=tid
 
 
 treeclust=readRDS(file.path(envrmt$path_sapflow,"sapflow_tree_cluster.rds"))
 
 
-# #--- Visualisation of the cluster results
-# # cluster panel PAM und Kmeans mit silhoutte Grafik
-#
-# # ATTENTION
-# clust_fun = "kmeans"
-# k_number = 6
-
-# #KMEANS -----------------------------
-# km <- factoextra::eclust(dat, k= k_number, seed = seed, FUNcluster = clust_fun,
-#                          hc_metric = "euclidian" ,hc_method = "kmeans",nstart=25)
-# km.clus <- factoextra::fviz_cluster(km,main = "kmeans eclust")
-# km.sil <- factoextra::fviz_silhouette(km)
 
 
 # library(XML)
