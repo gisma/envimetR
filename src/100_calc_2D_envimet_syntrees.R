@@ -133,14 +133,23 @@ createXML =  function(x){
 # Content should be derived from the statistics of the clustered tree segmentation file
 # the below one one contains the standard 20 m tree from the envi-mt data base as default
 
- df =  data.frame(  LAD =  c(" 0.15000,0.15000,0.15000,0.15000,0.65000,2.15000,2.18000,2.05000,1.72000,0.00000 " ),
-                    RAD =  c(" 0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.00000 "),
-                    SEASON =  c(" 1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000 "),
-                    DEPTH =  c(" 2.00000 ") ,
-                    HEIGHT =  c(" 20.00000 "),
-                    ALBEDO  = c(" 0.200000 "),
-                    ID  =  c(" 0000A1 "),
-                  stringsAsFactors = FALSE)
+df =  data.frame(  LAD =  c(DF$mean_lev_4,DF$mean_lev_8,DF$mean_lev_12,DF$mean_lev_16,DF$mean_lev_20,DF$mean_lev_24,DF$mean_lev_28,DF$mean_lev_32,DF$mean_lev_36,DF$mean_lev_40 ),
+                   RAD =  c(" 0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.00000 "),
+                   SEASON =  c(" 1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000 "),
+                   DEPTH =  c(" 1.50000 ") ,
+                   HEIGHT =  c(DF$mean_zmax),
+                   ALBEDO  = c(DF$mean_albedo),
+                   ID  =  c(DF$ID),
+                   stringsAsFactors = FALSE)
+
+ # df =  data.frame(  LAD =  c(" 0.15000,0.15000,0.15000,0.15000,0.65000,2.15000,2.18000,2.05000,1.72000,0.00000 " ),
+ #                    RAD =  c(" 0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.00000 "),
+ #                    SEASON =  c(" 1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000 "),
+ #                    DEPTH =  c(" 2.00000 ") ,
+ #                    HEIGHT =  c(" 20.00000 "),
+ #                    ALBEDO  = c(" 0.200000 "),
+ #                    ID  =  c(" 0000A1 "),
+ #                  stringsAsFactors = FALSE)
 
 # # Transpose dataframe to be processed with lapply
  tdf =  as.data.frame(t(df))
@@ -148,7 +157,15 @@ createXML =  function(x){
 # # Create a list of XML entris for each column of transposed dataframe
  xml.list =  lapply(tdf, createXML)
 
+ con <- file("output.xml", "w")
 
+ for (element in xml.list) {
+   # Use capture.output to handle different types of objects
+
+   # Write the output to file
+   saveXML(element, con)
+ }
+ close(con)
  # $V1
  # <PLANT>
  #   <ID> 0000A1 </ID>
