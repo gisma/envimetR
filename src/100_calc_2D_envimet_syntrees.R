@@ -21,6 +21,78 @@ seed=123
 set.seed(seed)
 
 
+
+
+
+###--------- load data
+treeclust=readRDS(file.path(envrmt$path_sapflow,"sapflow_tree_all_cluster_sf.rds"))
+
+# create 5 m tree interval
+rounded_zmax <- function(zmax_value) {
+  round(zmax_value / 5) * 5
+}
+
+# Apply the rounding function to zmax
+sf_data <- treeclust %>%
+  mutate(zmax_rounded = rounded_zmax(zmax))
+
+# Create a data frame of unique pr_arma values
+unique_pr_arma <- as.data.frame(unique(sf_data$pr_arma) )
+
+
+# Create a data frame of unique zmax intervals
+unique_zmax_intervals <- as.data.frame(unique(sf_data$zmax_rounded))
+
+# Cross join to get all combinations of pr_arma and zmax intervals
+combinations <- expand.grid(pr_arma = unique_pr_arma$`unique(sf_data$pr_arma)`,
+                            zmax_interval = unique_zmax_intervals$`unique(sf_data$zmax_rounded)`)
+
+# Initialize an empty list to store results
+results_list <- list()
+
+for (i in 1:nrow(combinations)) {
+  # Filter the data for the current combination
+  combination_data <- sf_data %>%
+    filter(pr_arma == combinations$pr_arma[i], zmax_rounded == combinations$zmax_interval[i])
+
+  # Calculate mean statistics for the current combination
+  combination_means <- combination_data %>%
+    summarise(
+      mean_lev_4 = mean(lev_4, na.rm = TRUE),
+      mean_lev_8 = mean(lev_8, na.rm = TRUE),
+      mean_lev_12 = mean(lev_12, na.rm = TRUE),
+      mean_lev_16 = mean(lev_16, na.rm = TRUE),
+      mean_lev_20 = mean(lev_20, na.rm = TRUE),
+      mean_lev_24 = mean(lev_24, na.rm = TRUE),
+      mean_lev_28 = mean(lev_28, na.rm = TRUE),
+      mean_lev_32 = mean(lev_32, na.rm = TRUE),
+      mean_lev_36 = mean(lev_36, na.rm = TRUE),
+      mean_lev_40 = mean(lev_40, na.rm = TRUE),
+      mean_albedo = mean(albedo, na.rm = TRUE),
+      mean_zmax = mean(zmax, na.rm = TRUE),
+      mean_zmean = mean(zmean, na.rm = TRUE)
+
+    )
+
+  # Add columns to indicate the pr_arma and zmax interval
+  combination_means$pr_arma <- combinations$pr_arma[i]
+  combination_means$zmax_interval <- combinations$zmax_interval[i]
+
+  # Add the results to the list
+  results_list[[i]] <- combination_means
+}
+
+# Combine all results into a single data frame
+results <- bind_rows(results_list)
+final_results = na.omit(results)
+# View the final results
+print(final_results)
+
+# create ID
+DF <- final_results %>%
+  mutate(ID = paste0(sprintf("%04d", pr_arma),sprintf("%02d",zmax_interval), sep = ""))
+
+
 # # Create function to generate an XML file
 # move this function later to the function folder
 
@@ -33,39 +105,29 @@ createXML =  function(x){
   HEIGHT =  x[5]
   ALBEDO  =  x[6]
   ID  =  x[7]
-#   # Create main node
-xmlfile =  newXMLNode("PLANT")
-#   # Add nodes to main node
-xmlfile =  addChildren(xmlfile, newXMLNode("ID",ID))
-xmlfile =  addChildren(xmlfile, newXMLNode("Description", "Synthetic LiDARTree"))
-xmlfile =  addChildren(xmlfile, newXMLNode("AlternativeName", "(None)"))
-xmlfile =  addChildren(xmlfile, newXMLNode("Planttype", "0"))
-xmlfile =  addChildren(xmlfile, newXMLNode("Leaftype", "1"))
-xmlfile =  addChildren(xmlfile, newXMLNode("Albedo",ALBEDO))
-xmlfile =  addChildren(xmlfile, newXMLNode("Transmittance","0.30000"))
-xmlfile =  addChildren(xmlfile, newXMLNode("rs_min","400.00000"))
-xmlfile =  addChildren(xmlfile, newXMLNode("Height",HEIGHT))
-xmlfile =  addChildren(xmlfile, newXMLNode("Depth", DEPTH))
-xmlfile =  addChildren(xmlfile, newXMLNode("LAD-Profile",LAD ))
-xmlfile =  addChildren(xmlfile, newXMLNode("RAD-Profile", RAD))
-xmlfile =  addChildren(xmlfile, newXMLNode("Season-Profile", SEASON))
-xmlfile =  addChildren(xmlfile, newXMLNode("Group", "- Legacy | SynTrees"))
-xmlfile =  addChildren(xmlfile, newXMLNode("color", "55000"))
+  #   # Create main node
+  xmlfile =  newXMLNode("PLANT")
+  #   # Add nodes to main node
+  xmlfile =  addChildren(xmlfile, newXMLNode("ID",ID))
+  xmlfile =  addChildren(xmlfile, newXMLNode("Description", "Synthetic LiDARTree"))
+  xmlfile =  addChildren(xmlfile, newXMLNode("AlternativeName", "(None)"))
+  xmlfile =  addChildren(xmlfile, newXMLNode("Planttype", "0"))
+  xmlfile =  addChildren(xmlfile, newXMLNode("Leaftype", "1"))
+  xmlfile =  addChildren(xmlfile, newXMLNode("Albedo",ALBEDO))
+  xmlfile =  addChildren(xmlfile, newXMLNode("Transmittance","0.30000"))
+  xmlfile =  addChildren(xmlfile, newXMLNode("rs_min","400.00000"))
+  xmlfile =  addChildren(xmlfile, newXMLNode("Height",HEIGHT))
+  xmlfile =  addChildren(xmlfile, newXMLNode("Depth", DEPTH))
+  xmlfile =  addChildren(xmlfile, newXMLNode("LAD-Profile",LAD ))
+  xmlfile =  addChildren(xmlfile, newXMLNode("RAD-Profile", RAD))
+  xmlfile =  addChildren(xmlfile, newXMLNode("Season-Profile", SEASON))
+  xmlfile =  addChildren(xmlfile, newXMLNode("Group", "- Legacy | SynTrees"))
+  xmlfile =  addChildren(xmlfile, newXMLNode("color", "55000"))
 
-#
-#   # Return the xml file
+  #
+  #   # Return the xml file
   return(xmlfile)
 }
-
-
-###--------- load data
-treeclust=readRDS(file.path(envrmt$path_sapflow,"sapflow_tree_all_cluster_sf.rds"))
-
-
-
-# put here the extraction code
-
-
 
 # # then Create dataframe
 # Content should be derived from the statistics of the clustered tree segmentation file
