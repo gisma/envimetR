@@ -26,15 +26,17 @@ set.seed(seed)
 
 ###--------- load data
 treeclust=readRDS(file.path(envrmt$path_sapflow,"sapflow_tree_all_cluster_sf.rds"))
-
 # create 5 m tree interval
 rounded_zmax <- function(zmax_value) {
   round(zmax_value / 5) * 5
 }
 
-# Apply the rounding function to zmax
+# Apply the rounding function to zmax and generate ID
 sf_data <- treeclust %>%
-  mutate(zmax_rounded = rounded_zmax(zmax))
+  mutate(zmax_rounded = rounded_zmax(zmax))  %>%
+  mutate(ID = paste0(sprintf("%04d", pr_arma),sprintf("%02d",zmax_rounded), sep = ""))
+# save modified clusterfile for use in envimet we added the tree ID
+st_write(sf_data,file.path(envrmt$path_sapflow,"sapflow_tree_envimet_cluster.shp"),append =F)
 
 # Create a data frame of unique pr_arma values
 unique_pr_arma <- as.data.frame(unique(sf_data$pr_arma) )
@@ -128,87 +130,35 @@ createXML =  function(x){
   #   # Return the xml file
   return(xmlfile)
 }
+list_of_dfs <- list()
 
 # # then Create dataframe
 # Content should be derived from the statistics of the clustered tree segmentation file
 # the below one one contains the standard 20 m tree from the envi-mt data base as default
+for (i in 1:nrow(DF)) {
+  df <- data.frame(
+    LAD = paste0(sprintf("%0.7f", c(DF$mean_lev_4[i], DF$mean_lev_8[i], DF$mean_lev_12[i], DF$mean_lev_16[i], DF$mean_lev_20[i], DF$mean_lev_24[i], DF$mean_lev_28[i], DF$mean_lev_32[i], DF$mean_lev_36[i], DF$mean_lev_40[i])), collapse=","),
+    RAD = "0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.00000",
+    SEASON = "1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000",
+    DEPTH = "1.50000",
+    HEIGHT = as.character(DF$mean_zmax[i]),
+    ALBEDO = as.character(DF$mean_albedo[i]),
+    ID = as.character(DF$ID[i])
+  )
+  list_of_dfs[[i]] <- df
+}
 
-df =  data.frame(  LAD =  c(DF$mean_lev_4,DF$mean_lev_8,DF$mean_lev_12,DF$mean_lev_16,DF$mean_lev_20,DF$mean_lev_24,DF$mean_lev_28,DF$mean_lev_32,DF$mean_lev_36,DF$mean_lev_40 ),
-                   RAD =  c(" 0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.00000 "),
-                   SEASON =  c(" 1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000 "),
-                   DEPTH =  c(" 1.50000 ") ,
-                   HEIGHT =  c(DF$mean_zmax),
-                   ALBEDO  = c(DF$mean_albedo),
-                   ID  =  c(DF$ID),
-                   stringsAsFactors = FALSE)
-
- # df =  data.frame(  LAD =  c(" 0.15000,0.15000,0.15000,0.15000,0.65000,2.15000,2.18000,2.05000,1.72000,0.00000 " ),
- #                    RAD =  c(" 0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.00000 "),
- #                    SEASON =  c(" 1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000 "),
- #                    DEPTH =  c(" 2.00000 ") ,
- #                    HEIGHT =  c(" 20.00000 "),
- #                    ALBEDO  = c(" 0.200000 "),
- #                    ID  =  c(" 0000A1 "),
- #                  stringsAsFactors = FALSE)
-
-# # Transpose dataframe to be processed with lapply
- tdf =  as.data.frame(t(df))
-#
 # # Create a list of XML entris for each column of transposed dataframe
- xml.list =  lapply(tdf, createXML)
+xml.list =  lapply(list_of_dfs, createXML)
 
- con <- file("output.xml", "w")
+# write it to a temporary outputfile
+# note you have to add this manually to your envimet database
+con <- file(file.path(envrmt$path_sapflow,"plant_output.xml"), "w")
+for (element in xml.list) {
+  xml_string <- toString.XMLNode(element)
 
- for (element in xml.list) {
-   # Use capture.output to handle different types of objects
+  # Write the output to file
+  writeLines(xml_string, con)
+}
+close(con)
 
-   # Write the output to file
-   saveXML(element, con)
- }
- close(con)
- # $V1
- # <PLANT>
- #   <ID> 0000A1 </ID>
- #   <Description>Synthetic LiDARTree</Description>
- #   <AlternativeName>(None)</AlternativeName>
- #   <Planttype>0</Planttype>
- #   <Leaftype>1</Leaftype>
- #   <Albedo> 0.200000 </Albedo>
- #   <Transmittance>0.30000</Transmittance>
- #   <rs_min>400.00000</rs_min>
- #   <Height> 20.00000 </Height>
- #   <Depth> 2.00000 </Depth>
- #   <LAD-Profile> 0.15000,0.15000,0.15000,0.15000,0.65000,2.15000,2.18000,2.05000,1.72000,0.00000 </LAD-Profile>
- #   <RAD-Profile> 0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.00000 </RAD-Profile>
- #   <Season-Profile> 1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000 </Season-Profile>
- #   <Group>- Legacy | SynTrees</Group>
- #   <color>55000</color>
- #   </PLANT>
-
- ## ORIGINAL
-# <Header>
-#   <filetype>DATA</filetype>
-#   <version>1</version>
-#   <revisiondat>5/19/2021 6:10:47 PM</revisiondate>
-#   <remark>Envi-Data</remark>
-#   <checksum>3340896</checksum>
-#   <encryptionlevel>1</encryptionlevel>
-#   </Header>
-#   <SOIL>
-# <PLANT>
-#   <ID> 0001cl </ID>
-#   <Description> cluster tree type 01 </Description>
-#   <AlternativeName> (None) </AlternativeName>
-#   <Planttype> 0 </Planttype>
-#   <Leaftype> 1 </Leaftype>
-#   <Albedo> 0.20000 </Albedo>
-#   <Transmittance> 0.30000 </Transmittance>
-#   <rs_min> 400.00000 </rs_min>
-#   <Height> 20.00000 </Height>
-#   <Depth> 2.00000 </Depth>
-#   <LAD-Profile> 0.15000,0.15000,0.15000,0.15000,0.65000,2.15000,2.18000,2.05000,1.72000,0.00000 </LAD-Profile>
-#   <RAD-Profile> 0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.10000,0.00000 </RAD-Profile>
-#   <Season-Profile> 1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000,1.00000 </Season-Profile>
-#   <Group> - Legacy | Hedges and others </Group>
-#   <Color> 56576 </Color>
-#   </PLANT>
