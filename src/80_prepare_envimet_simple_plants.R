@@ -28,17 +28,17 @@ fn = "5-25_MOF_rgb"
 epsg = 25832
 # get viridris color palette
 pal<-mapview::mapviewPalette("mapviewTopoColors")
-#Saftflusshalbmond
-coord = c(xmin,ymin,xmax,ymax)
+
 
 min_tree_height = 2
-
-trees=lidR::readLAS(file.path(envrmt$path_sapflow,"sapflow_tree_segments_multichm_dalponte2016.las"))
+sapflow_ext
+trees =lidR::readLAS(file.path(envrmt$path_level1,"sapflow_tree_segments_multichm_dalponte2016.las"))
+trees = lidR::clip_rectangle(trees, sapflow_ext[1],sapflow_ext[2],sapflow_ext[3],sapflow_ext[4])
 hulls_sf=st_read(file.path(envrmt$path_sapflow,"sapflow_tree_segments_multichm_dalponte2016.gpkg"))
-
+plot(hulls_sf)
 # get and filter the classification map
 sapflow_species=readRDS(paste0(envrmt$path_aerial_level0,"sfprediction_ffs_",fn,".rds"))
-sapflow_species = raster::crop(sapflow_species,extent(477500, 478218, 5631730, 5632500))
+sapflow_species = raster::crop(sapflow_species,sapflow_ext)
 
 #ClassificationMapRegularization majority filter
 otb  = link2GI::linkOTB(searchLocation = "~/apps/OTB-8.1.2-Linux64/")
@@ -72,7 +72,16 @@ st_write(species_hulls,file.path(envrmt$path_level1,"sapflow_tree_segments_multi
 
 # calculate the LAD metrics for the derived trees
 # review vertical LAI ditribution http://dx.doi.org/10.3390/rs12203457
-lad_tree = tree_metrics(trees, func = ~LAD(Z))
+#lad_tree = tree_metrics(trees, func = ~LAD(Z))
+lad_tree = tree_metrics(trees, ~metrics_lad(z = Z))
+# Define 'z' intervals from 0 to 45 in steps of 5, extending to 50 to include the upper bound of 45
+
+# Convert the result to a data frame for easier viewing
+aggregated_lad_df <- data.frame(
+  z_group = names(sum_lad_by_group),
+  sum_lad = as.vector(sum_lad_by_group)
+)
+
 # GAP and transmittance metrics
 # https://www.isprs.org/proceedings/xxxvi/3-W52/final_papers/Hopkinson_2007.pdf
 gap_tree = tree_metrics(trees, func = ~lidR::gap_fraction_profile(Z))

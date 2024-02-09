@@ -44,7 +44,7 @@ plot(dsm_p2r_1m)
 # available algorithms are  knnidw, tin, and kriging
 dtm_knnidw_1m <- grid_terrain(las_file, res=1, algorithm = knnidw(k = 15L, p = 2))
 raster::writeRaster(dtm_knnidw_1m,file.path(envrmt$path_data,"dtm_knnidw_1m.tif"),overwrite=TRUE)
-saveRDS(crop_aoimof_ctg,file.path(envrmt$path_data,"crop_aoimof_ctg.rds"))
+#saveRDS(crop_aoimof_ctg,file.path(envrmt$path_data,"crop_aoimof_ctg.rds"))
 mapview(dtm_knnidw_1m)
 
 # we remove the elevation of the surface from the catalog data and create a new catalog

@@ -24,7 +24,9 @@ fn = "5-25_MOF_rgb"
 min_tree_height = 5
 dtm  = raster::raster(file.path(envrmt$path_data,"dtm_knnidw_1m.tif"))
 dsm  = raster::raster(file.path(envrmt$path_data,"dsm_p2r_1m.tif"))
-las_file=lidR::readLAS("/home/creu/edu/mpg-envinsys-plygrnd/data/lidar/level1/crop_aoimof.las")
+#las_file=lidR::readLAS("/home/creu/edu/mpg-envinsys-plygrnd/data/lidar/level1/crop_aoimof.las")
+las_file=lidR::readLAS(paste0(envrmt$path_lidar_level0,"MOF_lidar_2018.las"))
+las_file = lidR::clip_rectangle(las_file, xleft = xmin, ybottom = xmax, xright = ymin, ytop = ymax)
 
 crs(dtm) = projection(las_file)
 crs(dsm) = projection(las_file)

@@ -87,13 +87,16 @@ raster::rasterOptions( overwrite = TRUE)
 
 
 ###############################
-# test area so called "sap flow halfmoon"
+
 xmin = 477500
 ymin = 5631730
 xmax = 478350
 ymax = 5632500
 ext=extent(xmin,xmax,ymin,ymax)
+
+# test area so called "sap flow halfmoon"
 sapflow_ext=extent(477500, 478218, 5631730, 5632500)
+
 ## define current projection ETRS89 / UTM zone 32N
 ## the definition of proj4 strings is DEPRCATED have a look at the links under section zero
 epsg = 25832
