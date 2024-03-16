@@ -24,18 +24,25 @@ fn = "5-25_MOF_rgb"
 min_tree_height = 5
 dtm  = raster::raster(file.path(envrmt$path_data,"dtm_knnidw_1m.tif"))
 dsm  = raster::raster(file.path(envrmt$path_data,"dsm_p2r_1m.tif"))
+ht = readRDS(file.path(envrmt$path_level1,"crop_aoimof_chm.rds"))
+#
+proj4string=CRS("+init=epsg:25832")
+st_crs(ht) <- epsg
 #las_file=lidR::readLAS("/home/creu/edu/mpg-envinsys-plygrnd/data/lidar/level1/crop_aoimof.las")
-las_file=lidR::readLAS(paste0(envrmt$path_lidar_level0,"MOF_lidar_2018.las"))
-las_file = lidR::clip_rectangle(las_file, xleft = xmin, ybottom = xmax, xright = ymin, ytop = ymax)
+#las_file=lidR::readLAS(paste0(envrmt$path_lidar_level0,"MOF_lidar_2018.las"))
+#ht = lidR::clip_rectangle(las_file, xleft = xmin, ybottom = xmax, xright = ymin, ytop = ymax)
 
-crs(dtm) = projection(las_file)
-crs(dsm) = projection(las_file)
+raster::crs(dtm) = projection(ht)
+raster::crs(dsm) = projection(ht)
 # 3 - start code
 #-----------------
 # calulate the chm
 chm=dsm-dtm
+raster::crs(chm) =  paste0("epsg:",epsg)
+terra::writeRaster(chm,file.path(envrmt$path_level1,"chm_1m.tif"),overwrite=TRUE)
+#chm = terra::crop(terra::rast(file.path(envrmt$path_level1,"chm_1m.tif")),ext(xmin, xmax,  ymin,  ymax))
 # normalize  trees
-ht <- lidR::normalize_height(las_file, dtm)
+#ht <- lidR::normalize_height(las_file, dtm)
 
 # pc based detection performs poor and is very slow
 #st = segment_trees(ht, li2012(speed_up = 6))
@@ -53,20 +60,27 @@ ht <- lidR::normalize_height(las_file, dtm)
 
 # the lidR package lidRplugins provides some usefull stuff especially the multichm() funktion
 # wich provides a fairly good tree top estimation in heteregonous forests
-ttops = find_trees(ht, multichm(res = 1, ws = 7))
-
+ttops = find_trees(ht, lidRplugins::multichm(res = 1, ws = 7))
+sp::proj4string(ttops) <- proj4string
+saveRDS(ttops,file.path(envrmt$path_level1,"ttops.rds"))
+ttops=readRDS(file.path(envrmt$path_level1,"ttops.rds"))
 # the best segmentation performance is derived by the dalponte algorithm (as far as lidR is used)
-st = segment_trees(ht, dalponte2016(chm, treetops=ttops))
+st = segment_trees(ht, dalponte2016(chm, treetops=ttops),uniqueness= "bitmerge")
+lidR::writeLAS(st,file.path(envrmt$path_level1,"segements_dalponte.las"))
 
-# have a look
+# have a lk
 # x = plot(st,color = "treeID")
 # add_treetops3d(x, ttops)
 
 # no filtering for non tree ids and deriving statistics and the projected hull
 trees   = lidR::filter_poi(st, !is.na(treeID))
-hulls = lidR::delineate_crowns(trees, type = "concave", concavity = 2,func= .stdmetrics)
 
+#rm(c(st))
+lidR::writeLAS(trees,file.path(envrmt$path_level1,"trees_dalponte.las"))
+hulls = lidR::delineate_crowns(trees, type = "concave", concavity = 2,func= .stdmetrics)
 # save it to a common  file format
 hulls_sf = as(hulls,"sf")
-st_write(hulls_sf,file.path(envrmt$path_level1,"sapflow_tree_segments_multichm_dalponte2016.gpkg"))
-lidR::writeLAS(trees,file.path(envrmt$path_level1,"sapflow_tree_segments_multichm_dalponte2016.las"))
+st_crs(hulls_sf) <- epsg
+st_write(hulls_sf,file.path(envrmt$path_level1,"sapflow_tree_segments_multichm_dalponte2016.gpkg"),append=FALSE)
+
+

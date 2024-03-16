@@ -29,7 +29,7 @@ set.seed(123)
 # 3 - start code
 #-----------------
 las_file=lidR::readLAS(paste0(envrmt$path_lidar_level0,"MOF_lidar_2018.las"))
-las_file = lidR::clip_rectangle(las_file, xleft = xmin, ybottom = xmax, xright = ymin, ytop = ymax)
+#las_file = lidR::clip_rectangle(las_file, xleft = xmin, ybottom = xmax, xright = ymin, ytop = ymax)
 
 # the fastest and simplest algorithm to interpolate a surface is given with p2r()
 # the available options are  p2r, dsmtin, pitfree
@@ -50,7 +50,7 @@ mapview(dtm_knnidw_1m)
 # we remove the elevation of the surface from the catalog data and create a new catalog
 crop_aoimof_chm <- lidR::normalize_height(las_file,dtm_knnidw_1m)
 saveRDS(crop_aoimof_chm, file= file.path(envrmt$path_level1,"crop_aoimof_chm.rds"))
-
+crop_aoimof_chm = readRDS(file.path(envrmt$path_level1,"crop_aoimof_chm.rds"))
 
 # Now create a CHM based on the normalized data and a CHM with the dsmtin() algorithm
 # calculate a chm raster with dsmtin()
@@ -63,10 +63,10 @@ plot(chm_dsmtin_1m)
 
 
 ## call mapview with some additional arguments
-mapview(chm_dsmtin_1m,
-        map.types = "Esri.WorldImagery",
-        legend=TRUE,
-        layer.name = "canopy height model",
-        col = pal(256),
-        alpha.regions = 0.65)
+# mapview(chm_dsmtin_1m,
+#         map.types = "Esri.WorldImagery",
+#         legend=TRUE,
+#         layer.name = "canopy height model",
+#         col = pal(256),
+#         alpha.regions = 0.65)
 

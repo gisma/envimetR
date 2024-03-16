@@ -1,14 +1,15 @@
 #----  basic setup envimetR
 # install/check from github
-devtools::install_github("envima/envimaR")
+
+#devtools::install_github("envima/envimaR")
 #devtools::install_github("gisma/uavRst")
-devtools::install_github("r-spatial/link2GI")
-devtools::install_github("HannaMeyer/CAST")
+#devtools::install_github("r-spatial/link2GI")
+#devtools::install_github("HannaMeyer/CAST")
 
 library(envimaR)
-packagesToLoad = c("scriptName","lidR", "link2GI", "mapview", "raster", "rgdal",
+packagesToLoad = c("scriptName","lidR", "link2GI", "mapview", "raster",
                    "rlas", "sp",  "sf" ,"caret", "dplyr","plyr","CAST","doParallel",
-                   "sen2r","tidyr","cluster","ClusterR","gtools")
+                   "tidyr","cluster","ClusterR","gtools","exactextractr")
 
 mvTop<-mapview::mapviewPalette("mapviewTopoColors")
 mvSpec<-mapview::mapviewPalette("mapviewSpectralColors")
@@ -25,7 +26,7 @@ ccols = data.frame("Type" = c('agriculture', 'alder', 'ash', 'beech', 'douglas_f
 ## for a deeper  however rarely less confusing understanding have a look at:
 ## https://rgdal.r-forge.r-project.org/articles/CRS_projections_transformations.html
 ## https://www.r-spatial.org/r/2020/03/17/wkt.html
-rgdal::set_thin_PROJ6_warnings(TRUE)
+## rgdal::set_thin_PROJ6_warnings(TRUE)
 
 #########################################################################
 

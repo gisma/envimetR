@@ -32,10 +32,9 @@ pal<-mapview::mapviewPalette("mapviewTopoColors")
 
 min_tree_height = 2
 sapflow_ext
-trees =lidR::readLAS(file.path(envrmt$path_level1,"sapflow_tree_segments_multichm_dalponte2016.las"))
-trees = lidR::clip_rectangle(trees, sapflow_ext[1],sapflow_ext[2],sapflow_ext[3],sapflow_ext[4])
-hulls_sf=st_read(file.path(envrmt$path_sapflow,"sapflow_tree_segments_multichm_dalponte2016.gpkg"))
-plot(hulls_sf)
+dalponte.las =lidR::readLAS(file.path(envrmt$path_level1,"trees_dalponte.las"))
+sapflow_dalponte = lidR::clip_rectangle(trees, xleft = xmin, ybottom = xmax, xright = ymin, ytop = ymax)
+hulls_sf=st_read(file.path(envrmt$path_level1,"sapflow_tree_segments_multichm_dalponte2016.gpkg"))
 # get and filter the classification map
 sapflow_species=readRDS(paste0(envrmt$path_aerial_level0,"sfprediction_ffs_",fn,".rds"))
 sapflow_species = raster::crop(sapflow_species,sapflow_ext)
@@ -72,9 +71,22 @@ st_write(species_hulls,file.path(envrmt$path_level1,"sapflow_tree_segments_multi
 
 # calculate the LAD metrics for the derived trees
 # review vertical LAI ditribution http://dx.doi.org/10.3390/rs12203457
-#lad_tree = tree_metrics(trees, func = ~LAD(Z))
-lad_tree = tree_metrics(trees, ~metrics_lad(z = Z))
-# Define 'z' intervals from 0 to 45 in steps of 5, extending to 50 to include the upper bound of 45
+lidR::writeLAS(sapflow_dalponte,file.path(envrmt$path_level1,"sapflow_dalponte.laz"))
+
+VOXELS_LAD = lad.voxels(file.path(envrmt$path_level1,"sapflow_dalponte.laz"), grain.size = 2)
+lad_profile = lad.profile(VOXELS_LAD,relative = F)
+
+
+sapflow_dalponte@data$Z[sapflow_dalponte@data$Z < 0] = 0
+
+maxZ = floor(max(sapflow_dalponte@data$Z))
+func = formula(paste0("~pointsByZSlice(Z, ", maxZ, ")"))
+t.binneds    = lidR::tree_metrics(sapflow_dalponte, func, res = 2,
+                                  start = c(min(sapflow_dalponte@data$X), max(sapflow_dalponte@data$Y)))
+lad_tree = tree_metrics(sapflow_dalponte, func = ~LAD(Z))
+lad_tree = crown_metrics(sapflow_dalponte, ~metrics_lad(z = Z))
+Fehler: Duplicated elements found. At least one of the metrics was not a number. Each metric should be a single number.
+
 
 # Convert the result to a data frame for easier viewing
 aggregated_lad_df <- data.frame(

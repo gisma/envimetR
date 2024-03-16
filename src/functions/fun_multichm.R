@@ -70,31 +70,31 @@ multichm = function(res = 1, layer_thickness = 0.5, dist_2d = 3, dist_3d = 5, us
   lidR:::assert_all_are_positive(layer_thickness)
   lidR:::assert_all_are_positive(dist_2d)
   lidR:::assert_all_are_positive(dist_3d)
-  
+
   f = function(las)
   {
     context <- tryCatch({get("lidR.context", envir = parent.frame())}, error = function(e) {return(NULL)})
     lidR:::assert_is_valid_context(lidR:::LIDRCONTEXTITD, "multichm")
-    
+
     . <- X <- Y <- Z <- treeID <- NULL
-    
+
     dist_2d <- dist_2d^2
     dist_3d <- dist_3d^2
-    
+
     las_copy <- lidR::LAS(las@data[, .(X,Y,Z)], las@header)
     LM       <- list()
     chm      <- lidR::grid_canopy(las, res, lidR::p2r())
     i        <- 1
     p        <- list(...)
     hmin     <- if (is.null(p$hmin)) formals(lidR::lmf)$hmin else p$hmin
-    
+
     while (!lidR::is.empty(las_copy))
     {
       if (use_max)
         chm95 <- lidR::grid_canopy(las_copy, res, lidR::p2r())
       else
         chm95 <- lidR::grid_metrics(las_copy, ~stats::quantile(Z, probs = 0.95), res)
-      
+
       if (max(chm95[], na.rm = TRUE) > hmin)
       {
         lm       <- lidR::find_trees(chm95, lidR::lmf(...))
@@ -104,38 +104,38 @@ multichm = function(res = 1, layer_thickness = 0.5, dist_2d = 3, dist_3d = 5, us
         LM[[i]]  <- lm
         las_copy <- lidR::merge_spatial(las_copy, chm95, "chm95")
         las_copy <- lidR::filter_poi(las_copy, Z < chm95 - layer_thickness)
-        
+
         i <- i + 1
       }
       else
         las_copy <- methods::new("LAS")
     }
-    
+
     LM <- data.table::rbindlist(LM)
     data.table::setorder(LM, -Z)
     LM <- unique(LM, by = c("X", "Y"))
-    
+
     detected = logical(nrow(LM))
     detected[1] = TRUE
-    
+
     for (i in 2:nrow(LM))
     {
       distance2D = (LM$X[i] - LM$X[detected])^2 + (LM$Y[i] - LM$Y[detected])^2
       distance3D = distance2D + (LM$Z[i] - LM$Z[detected])^2
-      
+
       if (!any(distance2D < dist_2d) & !any(distance3D < dist_3d))
       {
         detected[i] = TRUE
       }
     }
-    
+
     detected = LM[detected]
     detected[, treeID := 1:.N]
-    
-    output <- sp::SpatialPointsDataFrame(detected[, 3:4], detected[, 1:2], proj4string = las@proj4string)
+
+    output <- sp::SpatialPointsDataFrame(detected[, 3:4], detected[, 1:2], proj4string = proj4string)
     return(output)
   }
-  
+
   class(f) <- c(lidR:::LIDRALGORITHMITD, lidR:::LIDRALGORITHMPOINTCLOUDBASED)
   return(f)
 }
